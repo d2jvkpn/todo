@@ -8,17 +8,25 @@ const store = useTodosStore()
 const locale = useLocaleStore()
 const editingId = ref(null)
 const editingText = ref('')
+
+// { msg, onConfirm, danger? }
+const modal = ref(null)
+
+function showConfirm(msg, onConfirm, danger = false) {
+  modal.value = { msg, onConfirm, danger }
+}
+
 function confirmToggle(todo) {
   const oneline = todo.text.replace(/\s+/g, ' ').trim()
   const preview = oneline.length > 15 ? oneline.slice(0, 15) + '…' : oneline
   const msg = todo.status === 'done' ? locale.t.confirmUndone(preview) : locale.t.confirmDone(preview)
-  if (window.confirm(msg)) store.toggleTodo(todo.id)
+  showConfirm(msg, () => store.toggleTodo(todo.id))
 }
 
 function confirmDelete(todo) {
   const oneline = todo.text.replace(/\s+/g, ' ').trim()
   const preview = oneline.length > 15 ? oneline.slice(0, 15) + '…' : oneline
-  if (window.confirm(locale.t.confirmDelete(preview))) store.deleteTodo(todo.id)
+  showConfirm(locale.t.confirmDelete(preview), () => store.deleteTodo(todo.id), true)
 }
 
 function startEdit(todo) {
@@ -79,4 +87,102 @@ function cancelEdit() {
       <button class="delete" @click="confirmDelete(todo)">×</button>
     </li>
   </ul>
+
+  <Teleport to="body">
+    <Transition name="modal">
+      <div v-if="modal" class="confirm-overlay" @click.self="modal = null">
+        <div class="confirm-modal">
+          <p class="confirm-msg">{{ modal.msg }}</p>
+          <div class="confirm-actions">
+            <button class="confirm-cancel" @click="modal = null">{{ locale.t.cancel }}</button>
+            <button
+              class="confirm-ok"
+              :class="{ 'confirm-ok--danger': modal.danger }"
+              @click="modal.onConfirm(); modal = null"
+            >{{ locale.t.confirm }}</button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
+
+<style scoped>
+.todo-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.todo-list .empty {
+  text-align: center;
+  color: var(--text);
+  padding: 40px 0;
+  font-size: 14px;
+}
+
+.todo-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.todo-list li.done span {
+  text-decoration: line-through;
+  opacity: 0.45;
+}
+
+.todo-list li input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.todo-list li span {
+  flex: 1;
+  font-size: 16px;
+  color: var(--text-h);
+  word-break: break-word;
+  white-space: pre-wrap;
+  cursor: default;
+}
+
+.edit-textarea {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  font-size: 16px;
+  font-family: inherit;
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--text-h);
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  min-height: 28px;
+}
+
+.todo-list .delete {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+@media (hover: hover) {
+  .todo-list .delete:hover {
+    color: var(--accent);
+  }
+}
+</style>

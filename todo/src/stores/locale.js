@@ -25,6 +25,8 @@ const messages = {
     priorityNormal:    '普通',
     priorityImportant: '重要',
     priorityUrgent:    '紧急',
+    cancel:  '取消',
+    confirm: '确定',
   },
   en: {
     placeholder: 'Add a task...',
@@ -49,6 +51,8 @@ const messages = {
     priorityNormal:    'Normal',
     priorityImportant: 'Important',
     priorityUrgent:    'Urgent',
+    cancel:  'Cancel',
+    confirm: 'OK',
   },
 }
 

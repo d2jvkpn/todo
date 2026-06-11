@@ -24,7 +24,7 @@ const labels = computed(() => ({
 function openPicker(e) {
   e.stopPropagation()
   const rect = dotRef.value.getBoundingClientRect()
-  const pickerH = 176  // 4 options × 44px
+  const pickerH = 76  // single row: dot 20px + label 14px + padding
   const top = rect.bottom + 6 + pickerH > window.innerHeight
     ? rect.top - pickerH - 6
     : rect.bottom + 6
@@ -55,24 +55,26 @@ onUnmounted(() => document.removeEventListener('click', close))
     @click="openPicker"
   />
   <Teleport to="body">
-    <div
-      v-if="open"
-      class="pdot-picker"
-      :style="{ top: pickerPos.top + 'px', left: pickerPos.left + 'px' }"
-      @click.stop
-    >
-      <button
-        v-for="opt in OPTIONS"
-        :key="opt"
-        class="pdot-option"
-        :class="{ 'pdot-option--active': opt === priority }"
-        type="button"
-        @click="choose(opt, $event)"
+    <Transition name="picker-fade">
+      <div
+        v-if="open"
+        class="pdot-picker"
+        :style="{ top: pickerPos.top + 'px', left: pickerPos.left + 'px' }"
+        @click.stop
       >
-        <span class="pdot" :class="`pdot--${opt}`" />
-        <span>{{ labels[opt] }}</span>
-      </button>
-    </div>
+        <button
+          v-for="opt in OPTIONS"
+          :key="opt"
+          class="pdot-option"
+          :class="{ 'pdot-option--active': opt === priority }"
+          type="button"
+          @click="choose(opt, $event)"
+        >
+          <span class="pdot-opt-dot" :class="`pdot--${opt}`" />
+          <span class="pdot-opt-label">{{ labels[opt] }}</span>
+        </button>
+      </div>
+    </Transition>
   </Teleport>
 </template>
 
@@ -97,38 +99,60 @@ onUnmounted(() => document.removeEventListener('click', close))
   position: fixed;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.14);
-  padding: 4px;
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
+  padding: 8px 6px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  gap: 2px;
   z-index: 300;
-  min-width: 110px;
 }
 
 .pdot-option {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
+  gap: 5px;
+  padding: 8px 10px;
   border: none;
   background: transparent;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 14px;
-  color: var(--text-h);
-  white-space: nowrap;
-  width: 100%;
-  text-align: left;
+  min-width: 52px;
 }
 
-.pdot-option--active {
-  background: var(--accent-bg);
+.pdot-opt-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: block;
+  flex-shrink: 0;
+  transition: transform 0.12s;
+}
+
+.pdot-opt-label {
+  font-size: 11px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.pdot-option--active .pdot-opt-dot {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 @media (hover: hover) {
   .pdot-option:hover {
     background: var(--accent-bg);
   }
+  .pdot-option:hover .pdot-opt-dot {
+    transform: scale(1.15);
+  }
 }
+
+/* 淡入动画 */
+.picker-fade-enter-active { transition: opacity 0.12s, transform 0.12s; }
+.picker-fade-leave-active { transition: opacity 0.1s; }
+.picker-fade-enter-from   { opacity: 0; transform: translateY(-4px); }
+.picker-fade-leave-to     { opacity: 0; }
 </style>

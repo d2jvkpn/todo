@@ -1,17 +1,25 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import TodoInput from './components/TodoInput.vue'
 import TodoFilter from './components/TodoFilter.vue'
 import TodoList from './components/TodoList.vue'
 import SideMenu from './components/SideMenu.vue'
 
 const menuOpen = ref(false)
+const headerRef = ref(null)
+
+onMounted(() => {
+  const update = () =>
+    document.documentElement.style.setProperty('--header-h', headerRef.value.offsetHeight + 'px')
+  update()
+  new ResizeObserver(update).observe(headerRef.value)
+})
 </script>
 
 <template>
   <div class="app">
     <SideMenu :open="menuOpen" @close="menuOpen = false" />
-    <header class="app-header">
+    <header ref="headerRef" class="app-header">
       <div class="app-title">
         <button class="app-icon-btn" @click="menuOpen = true">
         <svg class="app-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -37,3 +45,57 @@ const menuOpen = ref(false)
     </main>
   </div>
 </template>
+
+<style scoped>
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-header {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.app-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.app-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-icon-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.app-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+</style>
