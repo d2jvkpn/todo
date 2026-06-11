@@ -49,7 +49,7 @@ Single source of truth for all todo data. Synced to `localStorage['todos']` via 
 
 ### `stores/locale.js`
 
-Stores the active locale (`zh` / `en`) in `localStorage['locale']`. Exposes `t` (a computed message map) and `toggle()`. All user-visible strings are looked up through `t` — no third-party i18n library.
+Stores the active locale (`zh` / `en`) in `localStorage['locale']`. Initial value: saved preference → `navigator.language` (zh if starts with `zh`, otherwise `en`). Exposes `t` (a computed message map) and `toggle()`. All user-visible strings are looked up through `t` — no third-party i18n library.
 
 ## Data flow
 

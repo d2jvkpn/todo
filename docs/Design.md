@@ -139,7 +139,7 @@ actions: { addTodo, toggleTodo, editTodo, deleteTodo, setFilter, setPriority, ex
 ### `stores/locale.js`
 
 ```js
-state:   { locale: 'zh' | 'en' }
+state:   { locale: 'zh' | 'en' }  // init: localStorage → navigator.language → 'en'
 getters: { t }   // computed(() => messages[locale.value])
 ```
 
