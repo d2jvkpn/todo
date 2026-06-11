@@ -2,13 +2,16 @@
 import { ref } from 'vue'
 import { useLocaleStore } from '../stores/locale'
 import { useTodosStore } from '../stores/todos'
+import { useThemeStore } from '../stores/theme'
 
 defineProps({ open: Boolean })
 const emit = defineEmits(['close'])
 
 const localeStore = useLocaleStore()
 const todosStore = useTodosStore()
+const themeStore = useThemeStore()
 const showLang = ref(false)
+const showTheme = ref(false)
 const showAbout = ref(false)
 const alertMsg = ref(null)
 const fileInput = ref(null)
@@ -40,8 +43,14 @@ function selectLang(lang) {
   showLang.value = false
 }
 
+function selectTheme(val) {
+  themeStore.theme = val
+  showTheme.value = false
+}
+
 function closeAll() {
   showLang.value = false
+  showTheme.value = false
   showAbout.value = false
   emit('close')
 }
@@ -56,7 +65,7 @@ function closeAll() {
 
     <!-- 主菜单抽屉 -->
     <Transition name="drawer">
-      <div v-if="open" class="menu-drawer" @click="showLang = false">
+      <div v-if="open" class="menu-drawer" @click="showLang = false; showTheme = false">
         <div class="menu-item" @click="doExport">
           <svg class="menu-icon" viewBox="0 0 16 16" fill="none">
             <path d="M8 9V3m0 0L5 6m3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -72,7 +81,18 @@ function closeAll() {
           <span>{{ localeStore.t.importData }}</span>
         </div>
         <div class="menu-divider" />
-        <div class="menu-item" @click.stop="showLang = !showLang">
+        <div class="menu-item" @click.stop="showTheme = !showTheme; showLang = false">
+          <svg class="menu-icon" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M8 2.5v2M8 11.5v2M2.5 8h2M11.5 8h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span>{{ localeStore.t.theme }}</span>
+          <svg class="menu-item-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="menu-item" @click.stop="showLang = !showLang; showTheme = false">
           <svg class="menu-icon" viewBox="0 0 16 16" fill="none">
             <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/>
             <path d="M8 2.5C6 4 5.5 6 5.5 8S6 12 8 13.5M8 2.5C10 4 10.5 6 10.5 8S10 12 8 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -93,6 +113,29 @@ function closeAll() {
           <span>{{ localeStore.t.about }}</span>
         </div>
         <input ref="fileInput" type="file" accept=".json" style="display:none" @change="handleImport" />
+      </div>
+    </Transition>
+
+    <!-- 主题子面板 -->
+    <Transition name="panel">
+      <div v-if="open && showTheme" class="menu-panel">
+        <div
+          v-for="opt in [
+            { value: 'system', label: localeStore.t.themeSystem },
+            { value: 'light',  label: localeStore.t.themeLight },
+            { value: 'dark',   label: localeStore.t.themeDark },
+          ]"
+          :key="opt.value"
+          class="menu-item"
+          @click="selectTheme(opt.value)"
+        >
+          <span>{{ opt.label }}</span>
+          <svg v-if="themeStore.theme === opt.value"
+               width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 8l4 4 6-6" stroke="var(--accent)" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
       </div>
     </Transition>
 
@@ -133,8 +176,11 @@ function closeAll() {
         <div class="about-modal">
           <div class="about-modal-title">TODO</div>
           <p class="about-modal-desc">{{ localeStore.t.aboutDesc }}</p>
-          <div class="about-modal-stack">Vue 3 · Pinia · Vite</div>
-          <div class="about-modal-version">v1.0.0</div>
+          <div class="about-modal-stack">{{ localeStore.t.techs }}</div>
+          <div class="about-modal-version">{{ localeStore.t.version }}</div>
+          <a class="about-modal-repo" :href="localeStore.t.repository" target="_blank" rel="noopener">
+            {{ localeStore.t.repository.replace('https://', '') }}
+          </a>
           <button class="about-modal-close" @click="showAbout = false">
             {{ localeStore.t.close }}
           </button>
@@ -161,7 +207,7 @@ function closeAll() {
   left: 0;
   bottom: 0;
   width: 220px;
-  background: var(--bg);
+  background: var(--surface);
   border-right: 1px solid var(--border);
   z-index: 101;
 }
@@ -171,7 +217,7 @@ function closeAll() {
   top: var(--menu-top, var(--header-h, 0));
   left: 220px;
   width: 160px;
-  background: var(--bg);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-top: none;
   border-radius: 0 0 10px 0;
@@ -225,7 +271,7 @@ function closeAll() {
 }
 
 .about-modal {
-  background: var(--bg);
+  background: var(--surface);
   border-radius: 16px;
   padding: 28px 24px;
   width: 100%;
@@ -239,6 +285,7 @@ function closeAll() {
   font-size: 24px;
   font-weight: 700;
   color: var(--text-h);
+  text-align: center;
 }
 
 .about-modal-desc {
@@ -256,6 +303,17 @@ function closeAll() {
   font-size: 12px;
   color: var(--text);
   opacity: 0.5;
+}
+
+.about-modal-repo {
+  font-size: 12px;
+  color: var(--accent);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.about-modal-repo:hover {
+  text-decoration: underline;
 }
 
 .about-modal-close {

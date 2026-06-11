@@ -4,6 +4,9 @@ import TodoInput from './components/TodoInput.vue'
 import TodoFilter from './components/TodoFilter.vue'
 import TodoList from './components/TodoList.vue'
 import SideMenu from './components/SideMenu.vue'
+import { useThemeStore } from './stores/theme'
+
+useThemeStore()
 
 const menuOpen = ref(false)
 const headerRef = ref(null)
@@ -86,10 +89,13 @@ onMounted(() => {
 .app-title {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  position: relative;
 }
 
 .app-icon-btn {
+  position: absolute;
+  left: 0;
   background: none;
   border: none;
   padding: 0;

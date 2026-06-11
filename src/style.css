@@ -14,13 +14,14 @@ button, input {
 }
 
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
+  --text: #6b7280;
+  --text-h: #111827;
+  --bg: #f2f2f7;
+  --surface: #ffffff;
+  --border: #e5e5ea;
+  --accent: #1c1c1e;
+  --accent-bg: rgba(0, 0, 0, 0.06);
+  --accent-border: rgba(0, 0, 0, 0.22);
   --priority-none:      #d1d5db;
   --priority-normal:    #3b82f6;
   --priority-important: #f59e0b;
@@ -33,15 +34,27 @@ button, input {
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
     --text: #9ca3af;
     --text-h: #f3f4f6;
     --bg: #16171d;
+    --surface: #1e2029;
     --border: #2e303a;
     --accent: #c084fc;
     --accent-bg: rgba(192, 132, 252, 0.15);
     --accent-border: rgba(192, 132, 252, 0.5);
   }
+}
+
+:root[data-theme="dark"] {
+  --text: #9ca3af;
+  --text-h: #f3f4f6;
+  --bg: #16171d;
+  --surface: #1e2029;
+  --border: #2e303a;
+  --accent: #c084fc;
+  --accent-bg: rgba(192, 132, 252, 0.15);
+  --accent-border: rgba(192, 132, 252, 0.5);
 }
 
 /* Confirm / Alert Modal — TodoList 和 SideMenu 共用 */
@@ -57,7 +70,7 @@ button, input {
 }
 
 .confirm-modal {
-  background: var(--bg);
+  background: var(--surface);
   border-radius: 16px;
   padding: 24px;
   width: 100%;

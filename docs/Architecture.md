@@ -8,7 +8,7 @@
 | State | Pinia |
 | Build | Vite 8 |
 | Runtime config | `public/app.json` fetched at bootstrap |
-| Persistence | `localStorage` |
+| Persistence | `localStorage` (`todos`, `locale`, `theme`) |
 
 ## Entry point
 
@@ -27,9 +27,26 @@ App.vue
         └── PriorityDot.vue  # Per-item priority picker + completion toggle (teleported popover)
 ```
 
-`App.vue` tracks two CSS custom properties (`--header-h`, `--menu-top`) via `ResizeObserver` so the side menu can align to the input field regardless of header height.
+`App.vue` tracks two CSS custom properties (`--header-h`, `--menu-top`) via `ResizeObserver` so the side menu can align to the input field regardless of header height. It also instantiates `useThemeStore()` at setup time to apply the saved theme before first render.
+
+The app header title row uses `justify-content: center` with the menu icon `position: absolute; left: 0`, so the "TODO" heading is always centred regardless of icon width.
 
 ## Stores
+
+### `stores/theme.js`
+
+Manages the active colour scheme. Persists to `localStorage['theme']`. Initial value: saved preference → `'system'`.
+
+```js
+state:   { theme: 'system' | 'light' | 'dark' }
+```
+
+On load and on every change, applies the value to `document.documentElement`:
+
+- `'system'` → removes `data-theme` attribute (CSS falls back to `prefers-color-scheme`)
+- `'light'` / `'dark'` → sets `data-theme="light"` / `data-theme="dark"`
+
+Instantiated in `App.vue` (`useThemeStore()`) so the attribute is set before the first render.
 
 ### `stores/todos.js`
 
@@ -51,6 +68,8 @@ Single source of truth for all todo data. Synced to `localStorage['todos']` via 
 
 Stores the active locale (`zh` / `en`) in `localStorage['locale']`. Initial value: saved preference → `navigator.language` (zh if starts with `zh`, otherwise `en`). Exposes `t` (a computed message map) and `toggle()`. All user-visible strings are looked up through `t` — no third-party i18n library.
 
+`t` includes About-modal fields (`techs`, `version`, `repository`) and theme labels (`theme`, `themeSystem`, `themeLight`, `themeDark`) in addition to the core UI strings.
+
 ## Data flow
 
 ```
@@ -60,6 +79,32 @@ User action
               └─► watch → localStorage.setItem
                     └─► filteredTodos (computed) rerenders list
 ```
+
+## Theming
+
+All colours are CSS custom properties on `:root`. Light mode (default):
+
+| Variable | Value | Role |
+|----------|-------|------|
+| `--bg` | `#f2f2f7` | Page background (silver) |
+| `--surface` | `#ffffff` | Drawers, panels, modals |
+| `--text` | `#6b7280` | Body text |
+| `--text-h` | `#111827` | Headings, list items |
+| `--border` | `#e5e5ea` | Dividers, card borders |
+| `--accent` | `#1c1c1e` | Buttons, active states |
+| `--accent-bg` | `rgba(0,0,0,0.06)` | Subtle fills |
+| `--accent-border` | `rgba(0,0,0,0.22)` | Outlined accents |
+
+Dark mode overrides the same variables with purple-accent values (`--accent: #c084fc`). Dark vars are applied in two ways so forced dark and system dark both work:
+
+```css
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) { … }
+}
+:root[data-theme="dark"] { … }
+```
+
+The `--surface` variable separates elevated surfaces (drawers, modals) from the page background in both modes.
 
 ## Build output
 

@@ -27,6 +27,13 @@ const messages = {
     confirm: '确定',
     markDone:   '完成',
     markUndone: '撤销完成',
+    techs:      'Vue 3 · Pinia · Vite',
+    version:    'v1.0.0',
+    repository: 'https://github.com/d2jvkpn/todo',
+    theme:       '主题',
+    themeSystem: '跟随系统',
+    themeLight:  '浅色',
+    themeDark:   '深色',
   },
   en: {
     placeholder: 'Add a task...',
@@ -53,6 +60,13 @@ const messages = {
     confirm: 'OK',
     markDone:   'Done',
     markUndone: 'Undo',
+    techs:      'Vue 3 · Pinia · Vite',
+    version:    'v1.0.0',
+    repository: 'https://github.com/d2jvkpn/todo',
+    theme:       'Theme',
+    themeSystem: 'System',
+    themeLight:  'Light',
+    themeDark:   'Dark',
   },
 }
 
