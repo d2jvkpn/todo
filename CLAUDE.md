@@ -5,17 +5,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project layout
 
 ```
-my-app/      # Vue 3 + Vite app (all dev work happens here)
+todo/        # Vue 3 + Vite app (all dev work happens here)
 docs/        # Design specs, plans, and learning notes
 ```
 
-All commands below must be run from inside `my-app/`.
+All commands below must be run from inside `todo/`.
 
 ## Commands
 
 ```bash
 npm run dev      # Start dev server on port 3071 (LAN-exposed, phone-accessible)
-npm run build    # Production build → my-app/dist/
+npm run build    # Production build → todo/dist/
 npm run preview  # Serve the production build locally
 ```
 
@@ -27,18 +27,18 @@ No test runner or linter is configured yet.
 
 ## Architecture
 
-Vue 3 SFCs using `<script setup>` throughout. State management via Pinia with `watch`-based localStorage sync (Pinia not yet installed — `npm install pinia` needed before first use).
-
-Planned structure once the Todo app is built (`src/`):
+Vue 3 SFCs using `<script setup>` throughout. State management via Pinia with `watch`-based localStorage sync.
 
 ```
 stores/todos.js          # Pinia store: todos[], filter; syncs to localStorage['todos']
+stores/locale.js         # i18n store: zh/en
 components/TodoInput.vue # Add new todo
-components/TodoFilter.vue# Filter tabs: all / active / done
+components/TodoFilter.vue# Filter tabs: active / done / all
 components/TodoList.vue  # List with toggle, inline edit (double-click), delete
+components/SideMenu.vue  # Side drawer: export, import, language, about
 ```
 
-See `docs/superpowers/specs/2026-06-11-todo-app-design.md` for the full design spec.
+See `docs/todo-app-design.md` for the full design spec.
 See `docs/superpowers/plans/2026-06-11-todo-app.md` for the implementation plan.
 
 ## Memory
