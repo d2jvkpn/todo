@@ -27,6 +27,8 @@ const messages = {
     priorityUrgent:    '紧急',
     cancel:  '取消',
     confirm: '确定',
+    markDone:   '完成',
+    markUndone: '撤销完成',
   },
   en: {
     placeholder: 'Add a task...',
@@ -53,6 +55,8 @@ const messages = {
     priorityUrgent:    'Urgent',
     cancel:  'Cancel',
     confirm: 'OK',
+    markDone:   'Done',
+    markUndone: 'Undo',
   },
 }
 
