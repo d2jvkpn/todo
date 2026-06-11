@@ -39,6 +39,12 @@ function choose(val, e) {
   open.value = false
 }
 
+function toggleDone(e) {
+  e.stopPropagation()
+  emit('toggle:done')
+  open.value = false
+}
+
 function close() {
   open.value = false
 }
@@ -63,16 +69,26 @@ onUnmounted(() => document.removeEventListener('click', close))
         :style="{ top: pickerPos.top + 'px', left: pickerPos.left + 'px' }"
         @click.stop
       >
+        <div class="pdot-priority-row">
+          <button
+            v-for="opt in OPTIONS"
+            :key="opt"
+            class="pdot-option"
+            :class="{ 'pdot-option--active': opt === priority }"
+            type="button"
+            @click="choose(opt, $event)"
+          >
+            <span class="pdot-opt-dot" :class="`pdot--${opt}`" />
+            <span class="pdot-opt-label">{{ labels[opt] }}</span>
+          </button>
+        </div>
+        <div class="pdot-divider" />
         <button
-          v-for="opt in OPTIONS"
-          :key="opt"
-          class="pdot-option"
-          :class="{ 'pdot-option--active': opt === priority }"
+          class="pdot-done-btn"
           type="button"
-          @click="choose(opt, $event)"
+          @click="toggleDone"
         >
-          <span class="pdot-opt-dot" :class="`pdot--${opt}`" />
-          <span class="pdot-opt-label">{{ labels[opt] }}</span>
+          {{ done ? locale.t.markUndone : locale.t.markDone }}
         </button>
       </div>
     </Transition>
@@ -121,9 +137,32 @@ onUnmounted(() => document.removeEventListener('click', close))
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
   padding: 8px 6px;
   display: flex;
+  flex-direction: column;
+  z-index: 300;
+}
+
+.pdot-priority-row {
+  display: flex;
   flex-direction: row;
   gap: 2px;
-  z-index: 300;
+}
+
+.pdot-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 4px;
+}
+
+.pdot-done-btn {
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-h);
+  text-align: center;
+  width: 100%;
 }
 
 .pdot-option {
@@ -165,6 +204,9 @@ onUnmounted(() => document.removeEventListener('click', close))
   }
   .pdot-option:hover .pdot-opt-dot {
     transform: scale(1.15);
+  }
+  .pdot-done-btn:hover {
+    background: var(--accent-bg);
   }
 }
 
