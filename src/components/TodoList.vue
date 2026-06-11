@@ -125,7 +125,7 @@ function cancelEdit() {
 }
 
 .todo-list li.done span {
-  text-decoration: line-through;
+  /* text-decoration: line-through; */
   opacity: 0.45;
 }
 
@@ -133,8 +133,9 @@ function cancelEdit() {
   flex: 1;
   font-size: 16px;
   color: var(--text-h);
-  word-break: break-word;
-  white-space: pre-wrap;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: default;
 }
 

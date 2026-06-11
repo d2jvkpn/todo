@@ -24,7 +24,7 @@ App.vue
 │   └── TodoFilter.vue  # Filter tabs: active / done / all
 └── main
     └── TodoList.vue    # Scrollable list
-        └── PriorityDot.vue  # Per-item priority picker (teleported popover)
+        └── PriorityDot.vue  # Per-item priority picker + completion toggle (teleported popover)
 ```
 
 `App.vue` tracks two CSS custom properties (`--header-h`, `--menu-top`) via `ResizeObserver` so the side menu can align to the input field regardless of header height.

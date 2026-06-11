@@ -14,7 +14,7 @@ Vue 3 移动端 Todo List，用于学习 Vue 3 核心概念、Pinia 状态管理
 ## 功能列表
 
 - 添加 Todo（多行文本输入，Enter = 换行）
-- 勾选完成 / 取消完成（带确认弹窗）
+- 勾选完成 / 取消完成（通过优先级色点选择器操作，无确认弹窗）
 - 双击编辑内容（textarea，Enter = 换行，Blur = 提交，Esc = 取消）
 - 删除（带确认弹窗）
 - 按状态筛选：未完成 / 已完成 / 全部（默认打开"未完成"）
@@ -87,9 +87,9 @@ CSS 变量：
 --priority-urgent:    #ef4444;
 ```
 
-**交互**：点击 todo 左侧圆点 → 弹出 4 色色盘（`position: fixed`，坐标由 `getBoundingClientRect()` 计算）→ 选择优先级后关闭；点击色盘外部也自动关闭。
+**交互**：点击 todo 左侧圆点 → 弹出选择器（`position: fixed`，坐标由 `getBoundingClientRect()` 计算）→ 上方 4 个优先级选项，下方分隔线 + "完成 / 撤销完成"按钮；点击选择器外部自动关闭。点击"完成"直接切换状态，无确认弹窗。
 
-**视觉**：圆点 14×14px，`none` 为灰色空心，其余实心；done 状态随整体 `opacity: 0.45`。
+**视觉**：圆点 14×14px，`none` 为灰色空心，其余实心；已完成状态在圆点中心叠加白色 ✓（`none` 优先级用灰色 ✓）。
 
 ## 组件职责
 
@@ -106,12 +106,12 @@ CSS 变量：
 
 ### `TodoList.vue`
 - 渲染 `store.filteredTodos`
-- 每项：`<PriorityDot>`、勾选框、文字（双击编辑）、删除按钮
+- 每项：`<PriorityDot>`、文字（单行截断，超出省略；双击编辑）、删除按钮
 
 ### `PriorityDot.vue`
-- props：`priority: string`；emits：`update:priority`
-- 内部状态 `open` 控制色盘显示
-- 色盘用 `position: fixed` 避免父容器 overflow 裁剪
+- props：`priority: string`，`done: boolean`；emits：`update:priority`，`toggle:done`
+- 内部状态 `open` 控制选择器显示
+- 选择器用 `position: fixed` 避免父容器 overflow 裁剪
 - unmount 时清除 document 点击监听
 
 ### `SideMenu.vue`
@@ -143,7 +143,7 @@ state:   { locale: 'zh' | 'en' }
 getters: { t }   // computed(() => messages[locale.value])
 ```
 
-`t` 包含：`placeholder, add, filters, empty, confirmDone, confirmUndone, confirmDelete, exportData, importData, importError, language, about, close, aboutDesc`，以及 4 条优先级标签文本。
+`t` 包含：`placeholder, add, filters, empty, confirmDelete, exportData, importData, importError, language, about, close, aboutDesc, markDone, markUndone`，以及 4 条优先级标签文本。
 
 ## 移动端注意事项
 
