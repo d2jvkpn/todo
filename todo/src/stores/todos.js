@@ -4,11 +4,18 @@ import { ref, computed, watch } from 'vue'
 export const useTodosStore = defineStore('todos', () => {
   // 迁移旧格式：done: boolean → status: 'active' | 'done'
   const raw = JSON.parse(localStorage.getItem('todos') || '[]')
-  const todos = ref(raw.map(t =>
-    'done' in t && !('status' in t)
-      ? { id: t.id, text: t.text, status: t.done ? 'done' : 'active' }
-      : t
-  ))
+  const todos = ref(raw.map(t => {
+    let migrated = t
+    // 旧格式迁移：done: boolean → status
+    if ('done' in t && !('status' in t)) {
+      migrated = { id: t.id, text: t.text, status: t.done ? 'done' : 'active' }
+    }
+    // 补全 priority 字段
+    if (!('priority' in migrated)) {
+      migrated = { ...migrated, priority: 'none' }
+    }
+    return migrated
+  }))
   const filter = ref('active')
 
   watch(todos, (val) => {
@@ -27,7 +34,7 @@ export const useTodosStore = defineStore('todos', () => {
     const id = window.isSecureContext
       ? crypto.randomUUID()
       : Date.now().toString(36) + Math.random().toString(36).slice(2)
-    todos.value.push({ id, text, status: 'active' })
+    todos.value.push({ id, text, status: 'active', priority: 'none' })
   }
 
   function toggleTodo(id) {
@@ -42,6 +49,11 @@ export const useTodosStore = defineStore('todos', () => {
 
   function deleteTodo(id) {
     todos.value = todos.value.filter(t => t.id !== id)
+  }
+
+  function setPriority(id, priority) {
+    const todo = todos.value.find(t => t.id === id)
+    if (todo) todo.priority = priority
   }
 
   function setFilter(value) {
@@ -98,5 +110,5 @@ export const useTodosStore = defineStore('todos', () => {
     })
   }
 
-  return { todos, filter, filteredTodos, addTodo, toggleTodo, editTodo, deleteTodo, setFilter, exportTodos, importTodos }
+  return { todos, filter, filteredTodos, addTodo, toggleTodo, editTodo, deleteTodo, setPriority, setFilter, exportTodos, importTodos }
 })
