@@ -57,7 +57,8 @@ const messages = {
 }
 
 export const useLocaleStore = defineStore('locale', () => {
-  const locale = ref(localStorage.getItem('locale') || 'zh')
+  const browserLang = navigator.language?.startsWith('zh') ? 'zh' : 'en'
+  const locale = ref(localStorage.getItem('locale') || browserLang)
 
   watch(locale, (val) => localStorage.setItem('locale', val))
 
