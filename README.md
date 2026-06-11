@@ -1,5 +1,25 @@
-# Vue 3 + Vite
+# Todo App
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+基于 Vue 3 + Vite + Pinia 的移动端 Todo 应用，支持中英文切换、优先级标记、导入/导出。
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+## 运行
+
+```bash
+npm install
+npm run dev        # 开发服务器，端口 3071，局域网可访问
+```
+
+启动后终端会显示 `Network:` 地址，同一 WiFi 下的手机可直接访问。
+
+## 打包
+
+```bash
+npm run build      # 生产构建 → dist/
+npm run preview    # 本地预览生产构建
+```
+
+## 技术栈
+
+- Vue 3 `<script setup>` SFC
+- Vite 8
+- Pinia（状态管理，数据持久化到 localStorage）

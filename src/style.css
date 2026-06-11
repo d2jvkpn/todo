@@ -113,8 +113,9 @@ button, input {
 .drawer-enter-active, .drawer-leave-active { transition: transform 0.25s ease; }
 .drawer-enter-from, .drawer-leave-to { transform: translateX(-100%); }
 
-.panel-enter-active, .panel-leave-active { transition: transform 0.2s ease; }
-.panel-enter-from, .panel-leave-to { transform: translateX(-100%); }
+.panel-enter-active { transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+.panel-leave-active { transition: opacity 0.14s ease, transform 0.14s cubic-bezier(0.55, 0, 1, 0.45); }
+.panel-enter-from, .panel-leave-to { opacity: 0; transform: translateX(-14px); }
 
 .modal-enter-active, .modal-leave-active { transition: opacity 0.2s; }
 .modal-enter-from, .modal-leave-to { opacity: 0; }

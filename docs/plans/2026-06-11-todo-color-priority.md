@@ -14,18 +14,18 @@
 
 | 操作 | 文件 | 内容 |
 |---|---|---|
-| Modify | `todo/src/style.css` | 新增 4 个 priority CSS 变量 |
-| Modify | `todo/src/stores/locale.js` | 新增 4 条优先级标签文本（中英） |
-| Modify | `todo/src/stores/todos.js` | 新增 priority 字段、迁移逻辑、setPriority 方法 |
-| Create | `todo/src/components/PriorityDot.vue` | 圆点 + 色盘弹出组件 |
-| Modify | `todo/src/components/TodoList.vue` | 集成 PriorityDot |
+| Modify | `src/style.css` | 新增 4 个 priority CSS 变量 |
+| Modify | `src/stores/locale.js` | 新增 4 条优先级标签文本（中英） |
+| Modify | `src/stores/todos.js` | 新增 priority 字段、迁移逻辑、setPriority 方法 |
+| Create | `src/components/PriorityDot.vue` | 圆点 + 色盘弹出组件 |
+| Modify | `src/components/TodoList.vue` | 集成 PriorityDot |
 
 ---
 
 ## Task 1: 添加 Priority CSS 变量
 
 **Files:**
-- Modify: `todo/src/style.css`
+- Modify: `src/style.css`
 
 - [ ] **Step 1: 在 `:root` 块末尾追加 4 个变量**
 
@@ -72,7 +72,7 @@ cd /home/appuser/workspace/app02.git/todo && npm run build 2>&1 | tail -5
 - [ ] **Step 3: Commit**
 
 ```bash
-git add todo/src/style.css
+git add src/style.css
 git commit -m "feat: add priority color CSS variables"
 ```
 
@@ -81,7 +81,7 @@ git commit -m "feat: add priority color CSS variables"
 ## Task 2: 添加 i18n 优先级标签
 
 **Files:**
-- Modify: `todo/src/stores/locale.js`
+- Modify: `src/stores/locale.js`
 
 - [ ] **Step 1: 在 zh 对象末尾（`aboutDesc` 后）添加标签**
 
@@ -140,7 +140,7 @@ cd /home/appuser/workspace/app02.git/todo && npm run build 2>&1 | tail -5
 - [ ] **Step 4: Commit**
 
 ```bash
-git add todo/src/stores/locale.js
+git add src/stores/locale.js
 git commit -m "feat: add priority label i18n strings"
 ```
 
@@ -149,7 +149,7 @@ git commit -m "feat: add priority label i18n strings"
 ## Task 3: 更新 Todos Store
 
 **Files:**
-- Modify: `todo/src/stores/todos.js`
+- Modify: `src/stores/todos.js`
 
 - [ ] **Step 1: 修改迁移逻辑，补全 priority 字段**
 
@@ -214,7 +214,7 @@ cd /home/appuser/workspace/app02.git/todo && npm run build 2>&1 | tail -5
 - [ ] **Step 6: Commit**
 
 ```bash
-git add todo/src/stores/todos.js
+git add src/stores/todos.js
 git commit -m "feat: add priority field and setPriority to todos store"
 ```
 
@@ -223,7 +223,7 @@ git commit -m "feat: add priority field and setPriority to todos store"
 ## Task 4: 创建 PriorityDot.vue
 
 **Files:**
-- Create: `todo/src/components/PriorityDot.vue`
+- Create: `src/components/PriorityDot.vue`
 
 - [ ] **Step 1: 新建文件，写入完整组件**
 
@@ -373,7 +373,7 @@ cd /home/appuser/workspace/app02.git/todo && npm run build 2>&1 | tail -5
 - [ ] **Step 3: Commit**
 
 ```bash
-git add todo/src/components/PriorityDot.vue
+git add src/components/PriorityDot.vue
 git commit -m "feat: add PriorityDot component with color picker"
 ```
 
@@ -382,7 +382,7 @@ git commit -m "feat: add PriorityDot component with color picker"
 ## Task 5: 集成 PriorityDot 到 TodoList.vue
 
 **Files:**
-- Modify: `todo/src/components/TodoList.vue`
+- Modify: `src/components/TodoList.vue`
 
 - [ ] **Step 1: 在 `<script setup>` 中 import PriorityDot**
 
@@ -437,7 +437,7 @@ cd /home/appuser/workspace/app02.git/todo && npm run build 2>&1 | tail -5
 - [ ] **Step 4: Commit**
 
 ```bash
-git add todo/src/components/TodoList.vue
+git add src/components/TodoList.vue
 git commit -m "feat: integrate PriorityDot into TodoList"
 ```
 
