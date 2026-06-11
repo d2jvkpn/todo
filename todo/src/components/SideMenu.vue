@@ -147,7 +147,7 @@ function closeAll() {
 <style scoped>
 .menu-overlay {
   position: fixed;
-  top: var(--header-h, 0);
+  top: var(--menu-top, var(--header-h, 0));
   left: 0;
   right: 0;
   bottom: 0;
@@ -157,7 +157,7 @@ function closeAll() {
 
 .menu-drawer {
   position: fixed;
-  top: var(--header-h, 0);
+  top: var(--menu-top, var(--header-h, 0));
   left: 0;
   bottom: 0;
   width: 220px;
@@ -168,7 +168,7 @@ function closeAll() {
 
 .menu-panel {
   position: fixed;
-  top: var(--header-h, 0);
+  top: var(--menu-top, var(--header-h, 0));
   left: 220px;
   width: 160px;
   background: var(--bg);

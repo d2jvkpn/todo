@@ -7,12 +7,21 @@ import SideMenu from './components/SideMenu.vue'
 
 const menuOpen = ref(false)
 const headerRef = ref(null)
+const inputRef = ref(null)
 
 onMounted(() => {
-  const update = () =>
+  const update = () => {
     document.documentElement.style.setProperty('--header-h', headerRef.value.offsetHeight + 'px')
+    document.documentElement.style.setProperty(
+      '--menu-top',
+      inputRef.value.getBoundingClientRect().top + 'px'
+    )
+  }
   update()
-  new ResizeObserver(update).observe(headerRef.value)
+  const observer = new ResizeObserver(update)
+  observer.observe(headerRef.value)
+  observer.observe(inputRef.value)
+  window.addEventListener('resize', update)
 })
 </script>
 
@@ -21,7 +30,7 @@ onMounted(() => {
     <SideMenu :open="menuOpen" @close="menuOpen = false" />
     <header ref="headerRef" class="app-header">
       <div class="app-title">
-        <button class="app-icon-btn" @click="menuOpen = true">
+        <button class="app-icon-btn" @click="menuOpen = !menuOpen">
         <svg class="app-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
           <!-- 笔尖 -->
           <path d="M4 28 L4 22 L10 28 Z" fill="var(--accent)" opacity="0.7"/>
@@ -37,7 +46,9 @@ onMounted(() => {
         </button>
         <h1>TODO</h1>
       </div>
-      <TodoInput />
+      <div ref="inputRef">
+        <TodoInput />
+      </div>
       <TodoFilter />
     </header>
     <main class="app-body">

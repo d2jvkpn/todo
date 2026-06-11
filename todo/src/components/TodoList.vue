@@ -115,11 +115,14 @@ function cancelEdit() {
   gap: 8px;
 }
 
-.todo-list .empty {
+.todo-list li.empty {
+  display: block;
+  border: none;
+  padding: 48px 0;
   text-align: center;
   color: var(--text);
-  padding: 40px 0;
   font-size: 14px;
+  opacity: 0.72;
 }
 
 .todo-list li {
