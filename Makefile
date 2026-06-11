@@ -1,6 +1,7 @@
 .PHONY: build preview run
 
 CONFIG ?= "app.json"
+BASE_PATH ?= "/todo"
 PORT ?= "3071"
 
 # make build CONFIG=app.json BASE_PATH=/todo
