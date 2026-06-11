@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useLocaleStore } from '../stores/locale'
 
 const props = defineProps({
@@ -24,7 +24,11 @@ const labels = computed(() => ({
 function openPicker(e) {
   e.stopPropagation()
   const rect = dotRef.value.getBoundingClientRect()
-  pickerPos.value = { top: rect.bottom + 6, left: rect.left }
+  const pickerH = 176  // 4 options × 44px
+  const top = rect.bottom + 6 + pickerH > window.innerHeight
+    ? rect.top - pickerH - 6
+    : rect.bottom + 6
+  pickerPos.value = { top, left: rect.left }
   open.value = true
 }
 
@@ -38,7 +42,7 @@ function close() {
   open.value = false
 }
 
-document.addEventListener('click', close)
+onMounted(() => document.addEventListener('click', close))
 onUnmounted(() => document.removeEventListener('click', close))
 </script>
 
@@ -81,8 +85,6 @@ onUnmounted(() => document.removeEventListener('click', close))
   display: block;
   padding: 0;
   cursor: pointer;
-  border: 2px solid var(--priority-none);
-  background: transparent;
 }
 
 .pdot--none      { border: 2px solid var(--priority-none); background: transparent; }
@@ -90,7 +92,7 @@ onUnmounted(() => document.removeEventListener('click', close))
 .pdot--important { border: none; background: var(--priority-important); }
 .pdot--urgent    { border: none; background: var(--priority-urgent); }
 
-/* picker 弹出层（Teleport 内仍保留 scoped 属性，无需 :global）*/
+/* picker 弹出层 */
 .pdot-picker {
   position: fixed;
   background: var(--bg);
