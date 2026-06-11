@@ -3,9 +3,10 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useLocaleStore } from '../stores/locale'
 
 const props = defineProps({
-  priority: { type: String, default: 'none' }
+  priority: { type: String, default: 'none' },
+  done: { type: Boolean, default: false }
 })
-const emit = defineEmits(['update:priority'])
+const emit = defineEmits(['update:priority', 'toggle:done'])
 
 const locale = useLocaleStore()
 const open = ref(false)
@@ -24,7 +25,7 @@ const labels = computed(() => ({
 function openPicker(e) {
   e.stopPropagation()
   const rect = dotRef.value.getBoundingClientRect()
-  const pickerH = 76  // single row: dot 20px + label 14px + padding
+  const pickerH = 140  // priority row + divider + done row + padding
   const top = rect.bottom + 6 + pickerH > window.innerHeight
     ? rect.top - pickerH - 6
     : rect.bottom + 6
@@ -50,7 +51,7 @@ onUnmounted(() => document.removeEventListener('click', close))
   <button
     ref="dotRef"
     class="pdot"
-    :class="`pdot--${priority}`"
+    :class="[`pdot--${priority}`, { 'pdot--done': done }]"
     type="button"
     @click="openPicker"
   />
@@ -87,6 +88,23 @@ onUnmounted(() => document.removeEventListener('click', close))
   display: block;
   padding: 0;
   cursor: pointer;
+  position: relative;
+}
+
+.pdot--done::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 9px;
+  line-height: 1;
+  color: #fff;
+  pointer-events: none;
+}
+
+.pdot--none.pdot--done::after {
+  color: var(--priority-none);
 }
 
 .pdot--none      { border: 2px solid var(--priority-none); background: transparent; }
