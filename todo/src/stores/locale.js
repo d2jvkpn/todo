@@ -21,6 +21,10 @@ const messages = {
     about: '关于',
     close: '关闭',
     aboutDesc: '一个简洁的移动端待办应用',
+    priorityNone:      '无',
+    priorityNormal:    '普通',
+    priorityImportant: '重要',
+    priorityUrgent:    '紧急',
   },
   en: {
     placeholder: 'Add a task...',
@@ -41,6 +45,10 @@ const messages = {
     about: 'About',
     close: 'Close',
     aboutDesc: 'A minimal mobile todo app',
+    priorityNone:      'None',
+    priorityNormal:    'Normal',
+    priorityImportant: 'Important',
+    priorityUrgent:    'Urgent',
   },
 }
 
