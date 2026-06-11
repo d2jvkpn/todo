@@ -2,6 +2,7 @@
 import { ref, nextTick } from 'vue'
 import { useTodosStore } from '../stores/todos'
 import { useLocaleStore } from '../stores/locale'
+import PriorityDot from './PriorityDot.vue'
 
 const store = useTodosStore()
 const locale = useLocaleStore()
@@ -55,6 +56,10 @@ function cancelEdit() {
       :key="todo.id"
       :class="{ done: todo.status === 'done' }"
     >
+      <PriorityDot
+        :priority="todo.priority || 'none'"
+        @update:priority="store.setPriority(todo.id, $event)"
+      />
       <input
         type="checkbox"
         :checked="todo.status === 'done'"
