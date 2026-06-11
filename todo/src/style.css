@@ -21,6 +21,10 @@ button, input {
   --accent: #aa3bff;
   --accent-bg: rgba(170, 59, 255, 0.1);
   --accent-border: rgba(170, 59, 255, 0.5);
+  --priority-none:      #d1d5db;
+  --priority-normal:    #3b82f6;
+  --priority-important: #f59e0b;
+  --priority-urgent:    #ef4444;
 
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
