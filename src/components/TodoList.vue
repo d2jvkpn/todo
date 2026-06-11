@@ -16,13 +16,6 @@ function showConfirm(msg, onConfirm, danger = false) {
   modal.value = { msg, onConfirm, danger }
 }
 
-function confirmToggle(todo) {
-  const oneline = todo.text.replace(/\s+/g, ' ').trim()
-  const preview = oneline.length > 15 ? oneline.slice(0, 15) + '…' : oneline
-  const msg = todo.status === 'done' ? locale.t.confirmUndone(preview) : locale.t.confirmDone(preview)
-  showConfirm(msg, () => store.toggleTodo(todo.id))
-}
-
 function confirmDelete(todo) {
   const oneline = todo.text.replace(/\s+/g, ' ').trim()
   const preview = oneline.length > 15 ? oneline.slice(0, 15) + '…' : oneline
@@ -66,12 +59,9 @@ function cancelEdit() {
     >
       <PriorityDot
         :priority="todo.priority || 'none'"
+        :done="todo.status === 'done'"
         @update:priority="store.setPriority(todo.id, $event)"
-      />
-      <input
-        type="checkbox"
-        :checked="todo.status === 'done'"
-        @click.prevent="confirmToggle(todo)"
+        @toggle:done="store.toggleTodo(todo.id)"
       />
       <span v-if="editingId !== todo.id" @dblclick="startEdit(todo)">
         {{ todo.text }}
@@ -137,14 +127,6 @@ function cancelEdit() {
 .todo-list li.done span {
   text-decoration: line-through;
   opacity: 0.45;
-}
-
-.todo-list li input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--accent);
-  flex-shrink: 0;
-  cursor: pointer;
 }
 
 .todo-list li span {
