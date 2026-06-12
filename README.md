@@ -14,7 +14,7 @@ npm run dev        # 开发服务器，端口 3071，局域网可访问
 ## 打包
 
 ```bash
-npm run build      # 生产构建 → dist/
+npm run build      # 生产构建 → target/dist/
 npm run preview    # 本地预览生产构建
 ```
 

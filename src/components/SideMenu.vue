@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useLocaleStore } from '../stores/locale'
 import { useTodosStore } from '../stores/todos'
 import { useThemeStore } from '../stores/theme'
@@ -15,6 +15,44 @@ const showTheme = ref(false)
 const showAbout = ref(false)
 const alertMsg = ref(null)
 const fileInput = ref(null)
+const checkingUpdates = ref(false)
+const configCachedAt = ref(localStorage.getItem('appConfigCachedAt') || '')
+
+const configCachedText = computed(() => {
+  if (!configCachedAt.value) return localeStore.t.configCachePending
+  const date = new Date(configCachedAt.value)
+  if (Number.isNaN(date.getTime())) return localeStore.t.configCachePending
+  return new Intl.DateTimeFormat(localeStore.locale, {
+    dateStyle: 'medium',
+    timeStyle: 'medium',
+  }).format(date)
+})
+
+function updateConfigCachedTime(event) {
+  configCachedAt.value = event?.detail || localStorage.getItem('appConfigCachedAt') || ''
+}
+
+onMounted(() => {
+  window.addEventListener('app-config-cached', updateConfigCachedTime)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('app-config-cached', updateConfigCachedTime)
+})
+
+async function checkUpdates() {
+  if (checkingUpdates.value) return
+  checkingUpdates.value = true
+  try {
+    await window.todoCheckForUpdates?.()
+    alertMsg.value = localeStore.t.updateSuccess
+    closeAll()
+  } catch {
+    alertMsg.value = navigator.onLine ? localeStore.t.updateFailed : localeStore.t.updateOffline
+  } finally {
+    checkingUpdates.value = false
+  }
+}
 
 function doExport() {
   todosStore.exportTodos()
@@ -79,6 +117,13 @@ function closeAll() {
             <path d="M3 12v1a1 1 0 001 1h8a1 1 0 001-1v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
           <span>{{ localeStore.t.importData }}</span>
+        </div>
+        <div class="menu-item" :class="{ 'menu-item--disabled': checkingUpdates }" @click="checkUpdates">
+          <svg class="menu-icon" viewBox="0 0 16 16" fill="none">
+            <path d="M13 5.5A5.5 5.5 0 104.8 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M13 2.5v3h-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>{{ checkingUpdates ? localeStore.t.checkingUpdates : localeStore.t.checkUpdates }}</span>
         </div>
         <div class="menu-divider" />
         <div class="menu-item" @click.stop="showTheme = !showTheme; showLang = false">
@@ -176,11 +221,26 @@ function closeAll() {
         <div class="about-modal">
           <div class="about-modal-title">TODO</div>
           <p class="about-modal-desc">{{ localeStore.t.aboutDesc }}</p>
-          <div class="about-modal-stack">{{ localeStore.t.techs }}</div>
-          <div class="about-modal-version">{{ localeStore.t.version }}</div>
-          <a class="about-modal-repo" :href="localeStore.t.repository" target="_blank" rel="noopener">
-            {{ localeStore.t.repository.replace('https://', '') }}
-          </a>
+          <div class="about-modal-meta">
+            <div class="about-modal-meta-row">
+              <span class="about-modal-meta-label">{{ localeStore.t.techsLabel }}</span>
+              <span class="about-modal-meta-value">{{ localeStore.t.techs }}</span>
+            </div>
+            <div class="about-modal-meta-row">
+              <span class="about-modal-meta-label">{{ localeStore.t.versionLabel }}</span>
+              <span class="about-modal-meta-value">{{ localeStore.t.version }}</span>
+            </div>
+            <div class="about-modal-meta-row">
+              <span class="about-modal-meta-label">{{ localeStore.t.cachedLabel }}</span>
+              <span class="about-modal-meta-value">{{ localeStore.t.configCachedTime(configCachedText) }}</span>
+            </div>
+            <div class="about-modal-meta-row">
+              <span class="about-modal-meta-label">{{ localeStore.t.repositoryLabel }}</span>
+              <a class="about-modal-meta-value about-modal-meta-link" :href="localeStore.t.repository" target="_blank" rel="noopener">
+                {{ localeStore.t.repository.replace('https://', '') }}
+              </a>
+            </div>
+          </div>
           <button class="about-modal-close" @click="showAbout = false">
             {{ localeStore.t.close }}
           </button>
@@ -240,6 +300,11 @@ function closeAll() {
   background: var(--accent-bg);
 }
 
+.menu-item--disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .menu-icon {
   width: 18px;
   height: 18px;
@@ -294,25 +359,37 @@ function closeAll() {
   line-height: 1.5;
 }
 
-.about-modal-stack {
-  font-size: 13px;
-  color: var(--accent);
+.about-modal-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.about-modal-version {
+.about-modal-meta-row {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: baseline;
   font-size: 12px;
+  line-height: 1.4;
+}
+
+.about-modal-meta-label {
   color: var(--text);
   opacity: 0.5;
 }
 
-.about-modal-repo {
-  font-size: 12px;
-  color: var(--accent);
+.about-modal-meta-value {
+  color: var(--text);
+  opacity: 0.72;
+  min-width: 0;
   text-decoration: none;
-  word-break: break-all;
+  word-break: break-word;
 }
 
-.about-modal-repo:hover {
+.about-modal-meta-link:hover {
+  color: var(--accent);
+  opacity: 1;
   text-decoration: underline;
 }
 
