@@ -7,18 +7,19 @@
 | Framework | Vue 3 (`<script setup>`) |
 | State | Pinia |
 | Build | Vite 8 |
+| PWA | `vite-plugin-pwa` (Workbox) |
 | Runtime config | `public/app.json` fetched at bootstrap |
-| Persistence | `localStorage` (`todos`, `locale`, `theme`) |
+| Persistence | `localStorage` (`todos`, `locale`, `theme`, `appConfigCachedAt`) |
 
 ## Entry point
 
-`main.js` fetches `app.json` (path configurable via `VITE_APP_CONFIG` env var) before mounting the app, allowing runtime overrides (e.g. `appName`) without a rebuild.
+`main.js` loads `app.json` (path configurable via `VITE_APP_CONFIG`) before mounting. Strategy: **network-first** (cache-busted via `?_cacheBust`, bypasses HTTP cache), writing through to the **Cache API** bucket `todo-config`; falls back to the Cache API entry on network failure. On each successful fetch, the timestamp is saved to `localStorage['appConfigCachedAt']` and broadcast via the custom event `app-config-cached` so `SideMenu.vue` can update the displayed time without a reload.
 
 ## Component tree
 
 ```
 App.vue
-├── SideMenu.vue        # Side drawer (export / import / language / about)
+├── SideMenu.vue        # Side drawer (export / import / check-updates / theme / language / about)
 ├── header
 │   ├── TodoInput.vue   # Add new todo
 │   └── TodoFilter.vue  # Filter tabs: active / done / all
@@ -68,7 +69,7 @@ Single source of truth for all todo data. Synced to `localStorage['todos']` via 
 
 Stores the active locale (`zh` / `en`) in `localStorage['locale']`. Initial value: saved preference → `navigator.language` (zh if starts with `zh`, otherwise `en`). Exposes `t` (a computed message map) and `toggle()`. All user-visible strings are looked up through `t` — no third-party i18n library.
 
-`t` includes About-modal fields (`techs`, `version`, `repository`) and theme labels (`theme`, `themeSystem`, `themeLight`, `themeDark`) in addition to the core UI strings.
+`t` includes About-modal fields (`techs`, `version`, `repository`, `cachedLabel`, `configCachedTime`, `configCachePending`), theme labels (`theme`, `themeSystem`, `themeLight`, `themeDark`), and update-flow strings (`checkUpdates`, `checkingUpdates`, `updateSuccess`, `updateFailed`, `updateOffline`) in addition to the core UI strings.
 
 ## Data flow
 
@@ -109,6 +110,28 @@ The `--surface` variable separates elevated surfaces (drawers, modals) from the 
 ## Build output
 
 `vite build` writes to `target/dist/` (not the default `dist/`). The dev server binds to `0.0.0.0:3071` so the app is reachable from phones on the same LAN.
+
+## PWA & Update flow
+
+The app is a Progressive Web App built with `vite-plugin-pwa` (`registerType: 'autoUpdate'`). Workbox pre-caches all `*.{js,css,html,ico,png,svg,json}` assets at build time.
+
+**Service worker registration** — `main.js` calls `registerSW({ immediate: true })` (from `virtual:pwa-register`) and stores the returned `updateServiceWorker` callback.
+
+**`checkForUpdates()`** — exposed as `window.todoCheckForUpdates`, called from `SideMenu.vue`:
+
+1. Calls `registration.update()` to download a fresh SW if available.
+2. Re-fetches and re-applies `app.json` via `refreshAppConfig()`.
+3. If `registration.waiting` is non-null after the update, calls `updateServiceWorker(true)` to activate the new SW immediately (skips waiting for tabs to close).
+
+`SideMenu.vue` shows the "Check for updates" item as disabled while in-flight (`checkingUpdates` ref). The outcome is shown in the shared alert modal with one of three messages: success, offline, or failed.
+
+**App config cache:**
+
+| Key / API | Value | Purpose |
+|-----------|-------|---------|
+| Cache API bucket `todo-config` | serialised `app.json` | offline fallback for config |
+| `localStorage['appConfigCachedAt']` | ISO timestamp string | displayed in About modal |
+| custom event `app-config-cached` | `detail` = ISO timestamp | notifies `SideMenu` to re-render the cached-at time live |
 
 ## Environment variables
 
