@@ -1,31 +1,23 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useLocaleStore } from '../stores/locale'
 
 const props = defineProps({
-  priority: { type: String, default: 'none' },
-  done: { type: Boolean, default: false }
+  priority: { type: String, default: 'none' }
 })
-const emit = defineEmits(['update:priority', 'toggle:done'])
+const emit = defineEmits(['update:priority'])
 
-const locale = useLocaleStore()
 const open = ref(false)
 const dotRef = ref(null)
 const pickerPos = ref({ top: 0, left: 0 })
 
 const OPTIONS = ['none', 'normal', 'important', 'urgent']
 
-const labels = computed(() => ({
-  none:      locale.t.priorityNone,
-  normal:    locale.t.priorityNormal,
-  important: locale.t.priorityImportant,
-  urgent:    locale.t.priorityUrgent,
-}))
+const LABELS = { none: '无', normal: '普通', important: '重要', urgent: '紧急' }
 
 function openPicker(e) {
   e.stopPropagation()
   const rect = dotRef.value.getBoundingClientRect()
-  const pickerH = 140  // priority row + divider + done row + padding
+  const pickerH = 80  // priority row + padding only
   const top = rect.bottom + 6 + pickerH > window.innerHeight
     ? rect.top - pickerH - 6
     : rect.bottom + 6
@@ -36,12 +28,6 @@ function openPicker(e) {
 function choose(val, e) {
   e.stopPropagation()
   emit('update:priority', val)
-  open.value = false
-}
-
-function toggleDone(e) {
-  e.stopPropagation()
-  emit('toggle:done')
   open.value = false
 }
 
@@ -57,7 +43,7 @@ onUnmounted(() => document.removeEventListener('click', close))
   <button
     ref="dotRef"
     class="pdot"
-    :class="[`pdot--${priority}`, { 'pdot--done': done }]"
+    :class="`pdot--${priority}`"
     type="button"
     @click="openPicker"
   />
@@ -79,17 +65,9 @@ onUnmounted(() => document.removeEventListener('click', close))
             @click="choose(opt, $event)"
           >
             <span class="pdot-opt-dot" :class="`pdot--${opt}`" />
-            <span class="pdot-opt-label">{{ labels[opt] }}</span>
+            <span class="pdot-opt-label">{{ LABELS[opt] }}</span>
           </button>
         </div>
-        <div class="pdot-divider" />
-        <button
-          class="pdot-done-btn"
-          type="button"
-          @click="toggleDone"
-        >
-          {{ done ? locale.t.markUndone : locale.t.markDone }}
-        </button>
       </div>
     </Transition>
   </Teleport>
@@ -118,21 +96,6 @@ onUnmounted(() => document.removeEventListener('click', close))
   height: 40px;
 }
 
-.pdot--done::after {
-  content: '✓';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 11px;
-  line-height: 1;
-  color: #fff;
-  pointer-events: none;
-}
-
-.pdot--none.pdot--done::after {
-  color: var(--priority-none);
-}
 
 .pdot--none      { border: 2px solid var(--priority-none); background: transparent; }
 .pdot--normal    { border: none; background: var(--priority-normal); }
@@ -156,24 +119,6 @@ onUnmounted(() => document.removeEventListener('click', close))
   display: flex;
   flex-direction: row;
   gap: 2px;
-}
-
-.pdot-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 4px 4px;
-}
-
-.pdot-done-btn {
-  border: none;
-  background: transparent;
-  border-radius: 10px;
-  cursor: pointer;
-  padding: 8px 12px;
-  font-size: 13px;
-  color: var(--text-h);
-  text-align: center;
-  width: 100%;
 }
 
 .pdot-option {
@@ -215,9 +160,6 @@ onUnmounted(() => document.removeEventListener('click', close))
   }
   .pdot-option:hover .pdot-opt-dot {
     transform: scale(1.15);
-  }
-  .pdot-done-btn:hover {
-    background: var(--accent-bg);
   }
 }
 

@@ -51,6 +51,20 @@ export const useTodosStore = defineStore('todos', () => {
     todos.value = todos.value.filter(t => t.id !== id)
   }
 
+  function clearAll() {
+    todos.value = []
+  }
+
+  function moveUp(id) {
+    const filtered = filteredTodos.value
+    const fi = filtered.findIndex(t => t.id === id)
+    if (fi <= 0) return
+    const prevId = filtered[fi - 1].id
+    const ai = todos.value.findIndex(t => t.id === id)
+    const bi = todos.value.findIndex(t => t.id === prevId)
+    ;[todos.value[ai], todos.value[bi]] = [todos.value[bi], todos.value[ai]]
+  }
+
   function setPriority(id, priority) {
     const todo = todos.value.find(t => t.id === id)
     if (todo) todo.priority = priority
@@ -110,5 +124,5 @@ export const useTodosStore = defineStore('todos', () => {
     })
   }
 
-  return { todos, filter, filteredTodos, addTodo, toggleTodo, editTodo, deleteTodo, setPriority, setFilter, exportTodos, importTodos }
+  return { todos, filter, filteredTodos, addTodo, toggleTodo, editTodo, deleteTodo, clearAll, setPriority, moveUp, setFilter, exportTodos, importTodos }
 })

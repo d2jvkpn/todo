@@ -19,13 +19,13 @@
 
 ```
 App.vue
-├── SideMenu.vue        # Side drawer (export / import / check-updates / theme / language / about)
+├── SideMenu.vue        # Side drawer (export / import / clear-all / check-updates / theme / language / about)
 ├── header
 │   ├── TodoInput.vue   # Add new todo
 │   └── TodoFilter.vue  # Filter tabs: active / done / all
 └── main
-    └── TodoList.vue    # Scrollable list
-        └── PriorityDot.vue  # Per-item priority picker + completion toggle (teleported popover)
+    └── TodoList.vue    # Scrollable list; manages swipe-reveal and inline-edit state
+        └── PriorityDot.vue  # Per-item priority picker (teleported popover, priority-only)
 ```
 
 `App.vue` tracks two CSS custom properties (`--header-h`, `--menu-top`) via `ResizeObserver` so the side menu can align to the input field regardless of header height. It also instantiates `useThemeStore()` at setup time to apply the saved theme before first render.
@@ -65,11 +65,15 @@ Single source of truth for all todo data. Synced to `localStorage['todos']` via 
 
 **Export:** prefers the File System Access API (`showSaveFilePicker`); falls back to a synthetic `<a>` download.
 
+**`moveUp(id)`:** finds the preceding item in `filteredTodos`, then swaps the two items in the underlying `todos[]` array. No-op when already at the top of the filtered view.
+
+**`clearAll()`:** sets `todos[]` to `[]`; the deep watcher persists the empty array to `localStorage`.
+
 ### `stores/locale.js`
 
 Stores the active locale (`zh` / `en`) in `localStorage['locale']`. Initial value: saved preference → `navigator.language` (zh if starts with `zh`, otherwise `en`). Exposes `t` (a computed message map) and `toggle()`. All user-visible strings are looked up through `t` — no third-party i18n library.
 
-`t` includes About-modal fields (`techs`, `version`, `repository`, `cachedLabel`, `configCachedTime`, `configCachePending`), theme labels (`theme`, `themeSystem`, `themeLight`, `themeDark`), and update-flow strings (`checkUpdates`, `checkingUpdates`, `updateSuccess`, `updateFailed`, `updateOffline`) in addition to the core UI strings.
+`t` includes: core UI strings (`placeholder`, `add`, `filters`, `empty`, `cancel`, `confirm`, `delete`), action confirmations (`confirmDelete(p)`, `confirmMarkDone(p)`, `confirmMarkUndone(p)`, `confirmClearData`), data management (`clearData`, `exportData`, `importData`, `importError`), completion labels (`markDone`, `markUndone`), priority labels (`priorityNone/Normal/Important/Urgent`), About-modal fields (`techs`, `version`, `repository`, `cachedLabel`, `configCachedTime`, `configCachePending`), theme labels, and update-flow strings.
 
 ## Data flow
 

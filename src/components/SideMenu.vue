@@ -13,6 +13,7 @@ const themeStore = useThemeStore()
 const showLang = ref(false)
 const showTheme = ref(false)
 const showAbout = ref(false)
+const showClearConfirm = ref(false)
 const alertMsg = ref(null)
 const fileInput = ref(null)
 const checkingUpdates = ref(false)
@@ -86,10 +87,17 @@ function selectTheme(val) {
   showTheme.value = false
 }
 
+function doClearAll() {
+  todosStore.clearAll()
+  showClearConfirm.value = false
+  closeAll()
+}
+
 function closeAll() {
   showLang.value = false
   showTheme.value = false
   showAbout.value = false
+  showClearConfirm.value = false
   emit('close')
 }
 </script>
@@ -117,6 +125,12 @@ function closeAll() {
             <path d="M3 12v1a1 1 0 001 1h8a1 1 0 001-1v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
           <span>{{ localeStore.t.importData }}</span>
+        </div>
+        <div class="menu-item menu-item--danger" @click="showClearConfirm = true">
+          <svg class="menu-icon" viewBox="0 0 16 16" fill="none">
+            <path d="M3 4h10M6 4V3h4v1M5 4l.5 9h5L11 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>{{ localeStore.t.clearData }}</span>
         </div>
         <div class="menu-item" :class="{ 'menu-item--disabled': checkingUpdates }" @click="checkUpdates">
           <svg class="menu-icon" viewBox="0 0 16 16" fill="none">
@@ -199,6 +213,19 @@ function closeAll() {
             <path d="M3 8l4 4 6-6" stroke="var(--accent)" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- 清空确认弹窗 -->
+    <Transition name="modal">
+      <div v-if="showClearConfirm" class="confirm-overlay" @click.self="showClearConfirm = false">
+        <div class="confirm-modal">
+          <p class="confirm-msg">{{ localeStore.t.confirmClearData }}</p>
+          <div class="confirm-actions">
+            <button class="confirm-cancel" @click="showClearConfirm = false">{{ localeStore.t.cancel }}</button>
+            <button class="confirm-ok confirm-ok--danger" @click="doClearAll">{{ localeStore.t.confirm }}</button>
+          </div>
         </div>
       </div>
     </Transition>
@@ -303,6 +330,11 @@ function closeAll() {
 .menu-item--disabled {
   opacity: 0.55;
   pointer-events: none;
+}
+
+.menu-item--danger,
+.menu-item--danger .menu-icon {
+  color: #ef4444;
 }
 
 .menu-icon {

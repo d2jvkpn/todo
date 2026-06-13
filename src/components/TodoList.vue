@@ -1,5 +1,5 @@
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, reactive, nextTick, onMounted, onUnmounted } from 'vue'
 import { useTodosStore } from '../stores/todos'
 import { useLocaleStore } from '../stores/locale'
 import PriorityDot from './PriorityDot.vue'
@@ -16,6 +16,15 @@ function showConfirm(msg, onConfirm, danger = false) {
   modal.value = { msg, onConfirm, danger }
 }
 
+function confirmToggle(todo) {
+  const oneline = todo.text.replace(/\s+/g, ' ').trim()
+  const preview = oneline.length > 15 ? oneline.slice(0, 15) + '…' : oneline
+  const msg = todo.status === 'done'
+    ? locale.t.confirmMarkUndone(preview)
+    : locale.t.confirmMarkDone(preview)
+  showConfirm(msg, () => store.toggleTodo(todo.id))
+}
+
 function confirmDelete(todo) {
   const oneline = todo.text.replace(/\s+/g, ' ').trim()
   const preview = oneline.length > 15 ? oneline.slice(0, 15) + '…' : oneline
@@ -27,7 +36,11 @@ function startEdit(todo) {
   editingText.value = todo.text
   nextTick(() => {
     const ta = document.querySelector('.edit-textarea')
-    if (ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px' }
+    if (ta) {
+      ta.style.height = 'auto'
+      ta.style.height = ta.scrollHeight + 'px'
+      ta.focus()
+    }
   })
 }
 
@@ -45,6 +58,87 @@ function commitEdit(id) {
 function cancelEdit() {
   editingId.value = null
 }
+
+// ── swipe-to-reveal delete ──────────────────────────────────────────────────
+const REVEAL_W = 140      // px — up button (64) + delete button (76), must match CSS
+const SNAP_THRESHOLD = 48 // px — minimum drag distance to snap open
+
+const swipeOffsets = reactive({}) // { [id]: number }
+const openId = ref(null)
+const draggingId = ref(null)
+let _startX = 0
+
+function getOffset(id) {
+  return swipeOffsets[id] ?? 0
+}
+
+function onTouchStart(e, id) {
+  if (editingId.value && editingId.value !== id) {
+    commitEdit(editingId.value)
+  }
+  if (openId.value && openId.value !== id) {
+    swipeOffsets[openId.value] = 0
+    openId.value = null
+  }
+  _startX = e.touches[0].clientX
+}
+
+function onTouchMove(e, id) {
+  const dx = e.touches[0].clientX - _startX
+  if (dx >= 0) return
+  draggingId.value = id
+  swipeOffsets[id] = Math.max(dx, -REVEAL_W)
+}
+
+function onTouchEnd(id) {
+  draggingId.value = null
+  const offset = getOffset(id)
+  if (Math.abs(offset) >= SNAP_THRESHOLD) {
+    swipeOffsets[id] = -REVEAL_W
+    openId.value = id
+  } else {
+    swipeOffsets[id] = 0
+    if (openId.value === id) openId.value = null
+  }
+}
+
+function onMoveUp(id) {
+  store.moveUp(id)
+  swipeOffsets[id] = 0
+  openId.value = null
+}
+
+function onSwipeDelete(todo) {
+  swipeOffsets[todo.id] = 0
+  openId.value = null
+  confirmDelete(todo)
+}
+
+function onDocumentTouch(e) {
+  if (editingId.value && !e.target.closest('.edit-textarea')) {
+    commitEdit(editingId.value)
+  }
+  if (openId.value) {
+    swipeOffsets[openId.value] = 0
+    openId.value = null
+  }
+}
+
+function closeOpenSwipe() {
+  if (openId.value) {
+    swipeOffsets[openId.value] = 0
+    openId.value = null
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', closeOpenSwipe)
+  document.addEventListener('touchstart', onDocumentTouch, { passive: true })
+})
+onUnmounted(() => {
+  document.removeEventListener('click', closeOpenSwipe)
+  document.removeEventListener('touchstart', onDocumentTouch)
+})
 </script>
 
 <template>
@@ -55,26 +149,42 @@ function cancelEdit() {
     <li
       v-for="todo in store.filteredTodos"
       :key="todo.id"
-      :class="{ done: todo.status === 'done' }"
+      class="swipe-wrap"
+      :class="{ done: todo.status === 'done', dragging: draggingId === todo.id }"
+      @touchstart.passive="onTouchStart($event, todo.id)"
+      @touchmove.passive="onTouchMove($event, todo.id)"
+      @touchend="onTouchEnd(todo.id)"
     >
-      <PriorityDot
-        :priority="todo.priority || 'none'"
-        :done="todo.status === 'done'"
-        @update:priority="store.setPriority(todo.id, $event)"
-        @toggle:done="store.toggleTodo(todo.id)"
-      />
-      <span v-if="editingId !== todo.id" @dblclick="startEdit(todo)">
-        {{ todo.text }}
-      </span>
-      <textarea
-        v-else
-        v-model="editingText"
-        class="edit-textarea"
-        @keyup.escape="cancelEdit"
-        @blur="commitEdit(todo.id)"
-        @input="resizeTextarea"
-      />
-      <button class="delete" @click="confirmDelete(todo)">×</button>
+      <div
+        class="item-content"
+        :style="{ transform: `translateX(${getOffset(todo.id)}px)` }"
+      >
+        <PriorityDot
+          :priority="todo.priority || 'none'"
+          @update:priority="store.setPriority(todo.id, $event)"
+        />
+        <span v-if="editingId !== todo.id" @dblclick="startEdit(todo)">
+          {{ todo.text }}
+        </span>
+        <textarea
+          v-else
+          v-model="editingText"
+          class="edit-textarea"
+          @keyup.escape="cancelEdit"
+          @blur="commitEdit(todo.id)"
+          @input="resizeTextarea"
+        />
+        <button
+          class="done-btn"
+          :class="{ 'done-btn--done': todo.status === 'done' }"
+          @click="confirmToggle(todo)"
+        >✓</button>
+        <button class="delete" @click="confirmDelete(todo)">×</button>
+      </div>
+      <div class="swipe-actions">
+        <button class="swipe-up" @click="onMoveUp(todo.id)">↑</button>
+        <button class="swipe-delete" @click="onSwipeDelete(todo)">✕</button>
+      </div>
     </li>
   </ul>
 
@@ -105,7 +215,7 @@ function cancelEdit() {
   gap: 8px;
 }
 
-.todo-list li.empty {
+.todo-list .empty {
   display: block;
   border: none;
   padding: 48px 0;
@@ -115,28 +225,45 @@ function cancelEdit() {
   opacity: 0.72;
 }
 
-.todo-list li {
+/* swipe wrapper — clips the sliding content */
+.swipe-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+/* sliding content layer */
+.item-content {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 14px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: var(--surface, #fff);
+  transition: transform 0.22s ease;
+  will-change: transform;
+  position: relative;
+  z-index: 1;
+  min-width: 0;
 }
 
-.todo-list li.done span {
-  /* text-decoration: line-through; */
+/* suppress transition during live drag for responsiveness */
+.swipe-wrap.dragging .item-content {
+  transition: none;
+}
+
+.swipe-wrap.done .item-content span {
   opacity: 0.45;
 }
 
-.todo-list li span {
+.item-content span {
   flex: 1;
   font-size: 16px;
   color: var(--text-h);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: pre-wrap;
+  word-break: break-word;
   cursor: default;
+  min-width: 0;
 }
 
 .edit-textarea {
@@ -155,7 +282,35 @@ function cancelEdit() {
   min-height: 28px;
 }
 
-.todo-list .delete {
+/* done toggle button */
+.done-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--priority-none);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s;
+  padding: 0;
+}
+
+.done-btn--done {
+  color: #22c55e;
+}
+
+@media (hover: hover) {
+  .done-btn:not(.done-btn--done):hover { color: #22c55e; }
+  .done-btn--done:hover { color: #16a34a; }
+}
+
+/* × button — hidden on touch devices, shown on mouse hover */
+.item-content .delete {
   background: transparent;
   border: none;
   color: var(--text);
@@ -166,9 +321,42 @@ function cancelEdit() {
   flex-shrink: 0;
 }
 
+@media (pointer: coarse) {
+  .item-content .delete {
+    display: none;
+  }
+}
+
 @media (hover: hover) {
-  .todo-list .delete:hover {
+  .item-content .delete:hover {
     color: var(--accent);
   }
+}
+
+/* revealed action buttons behind the row */
+.swipe-actions {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  z-index: 0;
+}
+
+.swipe-up,
+.swipe-delete {
+  width: 70px;
+  color: #fff;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.swipe-up     { background: var(--text); }
+.swipe-delete { background: #ef4444; }
+
+@media (hover: hover) {
+  .swipe-up:hover     { filter: brightness(1.15); }
+  .swipe-delete:hover { background: #dc2626; }
 }
 </style>

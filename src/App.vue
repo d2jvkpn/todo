@@ -15,7 +15,7 @@ const today = computed(() => {
   const d = new Date()
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
-  return `${m}-${day}(${DAY_NAMES[d.getDay()]})`
+  return `${m}-${day} ${DAY_NAMES[d.getDay()]}`
 })
 const headerRef = ref(null)
 const inputRef = ref(null)
