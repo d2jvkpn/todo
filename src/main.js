@@ -10,7 +10,8 @@ const CONFIG_CACHED_EVENT = 'app-config-cached'
 
 function getConfigUrl() {
   const configFile = import.meta.env.VITE_APP_CONFIG || 'app.json'
-  return new URL(configFile, window.location.origin + import.meta.env.BASE_URL)
+  const url = new URL(import.meta.env.BASE_URL + configFile, window.location.origin)
+  return url
 }
 
 function applyAppConfig(config) {
@@ -24,6 +25,9 @@ async function fetchNetworkConfig(configUrl) {
 
   const response = await fetch(networkUrl, { cache: 'no-store' })
   if (!response.ok) throw new Error('!!! Failed to load config: ' + response.status)
+
+  const ct = response.headers.get('content-type') || ''
+  if (!ct.includes('json')) throw new Error('!!! Config is not JSON (got: ' + ct + ')')
 
   const config = await response.json()
   const cachedAt = new Date().toISOString()
