@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
+import pkg from './package.json'
 
 function normalizeBasePath(path) {
   if (!path) return '/'
@@ -10,6 +11,7 @@ function normalizeBasePath(path) {
 // https://vite.dev/config/
 export default defineConfig({
   base: normalizeBasePath(process.env.VITE_APP_BASE_PATH),
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
 
   plugins: [
     vue(),

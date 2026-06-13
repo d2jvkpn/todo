@@ -3,8 +3,8 @@
 ## 创建项目
 
 ```bash
-npm create vite@latest my-app -- --template vue
-cd my-app
+npm create vite@latest todo -- --template vue
+cd todo
 npm install
 npm run dev
 ```
