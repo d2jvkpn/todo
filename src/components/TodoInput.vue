@@ -6,6 +6,7 @@ import { useLocaleStore } from '../stores/locale'
 const store = useTodosStore()
 const locale = useLocaleStore()
 const text = ref('')
+const focused = ref(false)
 
 function add() {
   const trimmed = text.value.trim()
@@ -21,8 +22,15 @@ function add() {
       v-model="text"
       :placeholder="locale.t.placeholder"
       rows="1"
+      @focus="focused = true"
+      @blur="focused = false"
     />
-    <button :class="{ empty: !text.trim() }" @click="add">{{ locale.t.add }}</button>
+    <button
+      v-if="focused || text.trim()"
+      :class="{ empty: !text.trim() }"
+      @mousedown.prevent
+      @click="add"
+    >{{ locale.t.add }}</button>
   </div>
 </template>
 

@@ -94,6 +94,7 @@ onMounted(() => {
 .app-body {
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 16px;
 }
 
