@@ -97,8 +97,8 @@ onUnmounted(() => document.removeEventListener('click', close))
 
 <style scoped>
 .pdot {
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   flex-shrink: 0;
   display: block;
@@ -107,13 +107,24 @@ onUnmounted(() => document.removeEventListener('click', close))
   position: relative;
 }
 
+/* extend tap target to ~40×40 without changing visual size */
+.pdot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+}
+
 .pdot--done::after {
   content: '✓';
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1;
   color: #fff;
   pointer-events: none;
