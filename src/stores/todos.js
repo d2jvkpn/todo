@@ -38,7 +38,7 @@ export const useTodosStore = defineStore('todos', () => {
     const id = window.isSecureContext
       ? crypto.randomUUID()
       : Date.now().toString(36) + Math.random().toString(36).slice(2)
-    todos.value.push({ id, text, status: 'active', priority: 'none' })
+    todos.value.push({ id, text, status: 'active', priority: 'none', subtasks: [] })
   }
 
   function toggleTodo(id) {

@@ -126,7 +126,7 @@ onUnmounted(() => {
       :animation="200"
       :delay="400"
       :delay-on-touch-only="true"
-      :touch-start-threshold="5"
+      :touch-start-threshold="10"
       ghost-class="drag-ghost"
       @end="onDragEnd"
     >
@@ -186,7 +186,7 @@ onUnmounted(() => {
   </Teleport>
 
   <TodoDetail
-    v-if="selectedTodo"
+    v-if="selectedTodo && store.todos.some(t => t.id === selectedTodo.id)"
     :todo="selectedTodo"
     @close="selectedTodo = null"
   />
