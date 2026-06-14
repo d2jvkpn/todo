@@ -1,5 +1,5 @@
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, watch } from 'vue'
 import { useTodosStore } from '../stores/todos'
 
 const props = defineProps({
@@ -14,6 +14,11 @@ const newSubtaskText = ref('')
 const subtaskInputRef = ref(null)
 
 nextTick(() => { isOpen.value = true })
+
+// Auto-close when parent is auto-completed (all subtasks done → toggleTodo fires)
+watch(() => props.todo.status, (newStatus) => {
+  if (newStatus === 'done') close()
+})
 
 function close() {
   isOpen.value = false
@@ -202,7 +207,7 @@ function addSubtask() {
   flex: 1;
   border: none;
   background: transparent;
-  font-size: 15px;
+  font-size: 16px;
   color: var(--text-h);
   outline: none;
   font-family: inherit;
