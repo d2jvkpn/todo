@@ -119,6 +119,8 @@ function onDocumentTouch(e) {
     commitEdit(editingId.value)
   }
   if (openId.value) {
+    // tapping the revealed action buttons — let their @click handle it
+    if (e.target.closest('.swipe-actions')) return
     swipeOffsets[openId.value] = 0
     openId.value = null
   }
