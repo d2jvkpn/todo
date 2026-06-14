@@ -133,7 +133,16 @@ export const useTodosStore = defineStore('todos', () => {
           if (!Array.isArray(data) || data.some(i => !('id' in i && 'text' in i && 'status' in i))) {
             throw new Error('invalid')
           }
-          todos.value = data
+          const migrate = (t) => {
+            let m = t
+            if ('done' in m && !('status' in m)) {
+              m = { id: m.id, text: m.text, status: m.done ? 'done' : 'active' }
+            }
+            if (!('priority' in m)) m = { ...m, priority: 'none' }
+            if (!('subtasks' in m)) m = { ...m, subtasks: [] }
+            return m
+          }
+          todos.value = data.map(migrate)
           resolve()
         } catch {
           reject()
