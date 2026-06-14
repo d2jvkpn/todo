@@ -4,6 +4,7 @@ import { VueDraggable } from 'vue-draggable-plus'
 import { useTodosStore } from '../stores/todos'
 import { useLocaleStore } from '../stores/locale'
 import PriorityDot from './PriorityDot.vue'
+import TodoDetail from './TodoDetail.vue'
 
 const store = useTodosStore()
 const locale = useLocaleStore()
@@ -183,6 +184,12 @@ onUnmounted(() => {
       </div>
     </Transition>
   </Teleport>
+
+  <TodoDetail
+    v-if="selectedTodo"
+    :todo="selectedTodo"
+    @close="selectedTodo = null"
+  />
 </template>
 
 <style scoped>
