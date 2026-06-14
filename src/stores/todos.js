@@ -59,16 +59,6 @@ export const useTodosStore = defineStore('todos', () => {
     todos.value = []
   }
 
-  function moveUp(id) {
-    const filtered = filteredTodos.value
-    const fi = filtered.findIndex(t => t.id === id)
-    if (fi <= 0) return
-    const prevId = filtered[fi - 1].id
-    const ai = todos.value.findIndex(t => t.id === id)
-    const bi = todos.value.findIndex(t => t.id === prevId)
-    ;[todos.value[ai], todos.value[bi]] = [todos.value[bi], todos.value[ai]]
-  }
-
   function setPriority(id, priority) {
     const todo = todos.value.find(t => t.id === id)
     if (todo) todo.priority = priority
@@ -102,6 +92,17 @@ export const useTodosStore = defineStore('todos', () => {
     ) {
       toggleTodo(todoId)
     }
+  }
+
+  function reorderTodosByIds(orderedFilteredIds) {
+    // Find the slots (indices in todos[]) currently occupied by the filtered items
+    const positions = orderedFilteredIds.map(id => todos.value.findIndex(t => t.id === id))
+    const slots = [...positions].sort((a, b) => a - b)
+    const newTodos = [...todos.value]
+    orderedFilteredIds.forEach((id, i) => {
+      newTodos[slots[i]] = todos.value.find(t => t.id === id)
+    })
+    todos.value = newTodos
   }
 
   function setFilter(value) {
@@ -167,5 +168,5 @@ export const useTodosStore = defineStore('todos', () => {
     })
   }
 
-  return { todos, filter, filteredTodos, addTodo, toggleTodo, editTodo, deleteTodo, clearAll, setPriority, moveUp, setFilter, exportTodos, importTodos, addSubtask, toggleSubtask, deleteSubtask }
+  return { todos, filter, filteredTodos, addTodo, toggleTodo, editTodo, deleteTodo, clearAll, setPriority, setFilter, exportTodos, importTodos, addSubtask, toggleSubtask, deleteSubtask, reorderTodosByIds }
 })
