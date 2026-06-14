@@ -14,6 +14,10 @@ export const useTodosStore = defineStore('todos', () => {
     if (!('priority' in migrated)) {
       migrated = { ...migrated, priority: 'none' }
     }
+    // complement subtasks field
+    if (!('subtasks' in migrated)) {
+      migrated = { ...migrated, subtasks: [] }
+    }
     return migrated
   }))
   const filter = ref('active')
@@ -70,6 +74,21 @@ export const useTodosStore = defineStore('todos', () => {
     if (todo) todo.priority = priority
   }
 
+  function addSubtask(todoId, text) {
+    const todo = todos.value.find(t => t.id === todoId)
+    if (!todo) return
+    const id = window.isSecureContext
+      ? crypto.randomUUID()
+      : Date.now().toString(36) + Math.random().toString(36).slice(2)
+    todo.subtasks.push({ id, text, done: false })
+  }
+
+  function deleteSubtask(todoId, subtaskId) {
+    const todo = todos.value.find(t => t.id === todoId)
+    if (!todo) return
+    todo.subtasks = todo.subtasks.filter(s => s.id !== subtaskId)
+  }
+
   function setFilter(value) {
     filter.value = value
   }
@@ -124,5 +143,5 @@ export const useTodosStore = defineStore('todos', () => {
     })
   }
 
-  return { todos, filter, filteredTodos, addTodo, toggleTodo, editTodo, deleteTodo, clearAll, setPriority, moveUp, setFilter, exportTodos, importTodos }
+  return { todos, filter, filteredTodos, addTodo, toggleTodo, editTodo, deleteTodo, clearAll, setPriority, moveUp, setFilter, exportTodos, importTodos, addSubtask, deleteSubtask }
 })
