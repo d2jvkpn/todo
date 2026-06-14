@@ -1,5 +1,6 @@
 <script setup>
-import { ref, reactive, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { VueDraggable } from 'vue-draggable-plus'
 import { useTodosStore } from '../stores/todos'
 import { useLocaleStore } from '../stores/locale'
 import PriorityDot from './PriorityDot.vue'
@@ -60,7 +61,7 @@ function cancelEdit() {
 }
 
 // ── swipe-to-reveal delete ──────────────────────────────────────────────────
-const REVEAL_W = 140      // px — up button (64) + delete button (76), must match CSS
+const REVEAL_W = 70      // px — delete button only
 const SNAP_THRESHOLD = 48 // px — minimum drag distance to snap open
 
 const swipeOffsets = reactive({}) // { [id]: number }
@@ -102,16 +103,21 @@ function onTouchEnd(id) {
   }
 }
 
-function onMoveUp(id) {
-  store.moveUp(id)
-  swipeOffsets[id] = 0
-  openId.value = null
-}
-
 function onSwipeDelete(todo) {
   swipeOffsets[todo.id] = 0
   openId.value = null
   confirmDelete(todo)
+}
+
+// ── drag-to-reorder ─────────────────────────────────────────────────────────
+const dragList = ref([])
+
+watch(() => store.filteredTodos, (val) => {
+  dragList.value = [...val]
+}, { immediate: true })
+
+function onDragEnd() {
+  store.reorderTodosByIds(dragList.value.map(t => t.id))
 }
 
 function onDocumentTouch(e) {
@@ -144,51 +150,61 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <ul class="todo-list">
-    <li v-if="store.filteredTodos.length === 0" class="empty">
-      {{ locale.t.empty }}
-    </li>
-    <li
-      v-for="todo in store.filteredTodos"
-      :key="todo.id"
-      class="swipe-wrap"
-      :class="{ done: todo.status === 'done', dragging: draggingId === todo.id }"
-      @touchstart.passive="onTouchStart($event, todo.id)"
-      @touchmove.passive="onTouchMove($event, todo.id)"
-      @touchend="onTouchEnd(todo.id)"
+    <ul v-if="dragList.length === 0" class="todo-list">
+      <li class="empty">{{ locale.t.empty }}</li>
+    </ul>
+    <VueDraggable
+      v-else
+      v-model="dragList"
+      tag="ul"
+      class="todo-list"
+      :animation="200"
+      :delay="400"
+      :delay-on-touch-only="true"
+      :touch-start-threshold="5"
+      ghost-class="drag-ghost"
+      @end="onDragEnd"
     >
-      <div
-        class="item-content"
-        :style="{ transform: `translateX(${getOffset(todo.id)}px)` }"
+      <li
+        v-for="todo in dragList"
+        :key="todo.id"
+        class="swipe-wrap"
+        :class="{ done: todo.status === 'done', dragging: draggingId === todo.id }"
+        @touchstart.passive="onTouchStart($event, todo.id)"
+        @touchmove.passive="onTouchMove($event, todo.id)"
+        @touchend="onTouchEnd(todo.id)"
       >
-        <PriorityDot
-          :priority="todo.priority || 'none'"
-          @update:priority="store.setPriority(todo.id, $event)"
-        />
-        <span v-if="editingId !== todo.id" @dblclick="startEdit(todo)">
-          {{ todo.text }}
-        </span>
-        <textarea
-          v-else
-          v-model="editingText"
-          class="edit-textarea"
-          @keyup.escape="cancelEdit"
-          @blur="commitEdit(todo.id)"
-          @input="resizeTextarea"
-        />
-        <button
-          class="done-btn"
-          :class="{ 'done-btn--done': todo.status === 'done' }"
-          @click="confirmToggle(todo)"
-        >✓</button>
-        <button class="delete" @click="confirmDelete(todo)">×</button>
-      </div>
-      <div class="swipe-actions">
-        <button class="swipe-up" @click="onMoveUp(todo.id)">↑</button>
-        <button class="swipe-delete" @click="onSwipeDelete(todo)">✕</button>
-      </div>
-    </li>
-  </ul>
+        <div
+          class="item-content"
+          :style="{ transform: `translateX(${getOffset(todo.id)}px)` }"
+        >
+          <PriorityDot
+            :priority="todo.priority || 'none'"
+            @update:priority="store.setPriority(todo.id, $event)"
+          />
+          <span v-if="editingId !== todo.id" @dblclick="startEdit(todo)">
+            {{ todo.text }}
+          </span>
+          <textarea
+            v-else
+            v-model="editingText"
+            class="edit-textarea"
+            @keyup.escape="cancelEdit"
+            @blur="commitEdit(todo.id)"
+            @input="resizeTextarea"
+          />
+          <button
+            class="done-btn"
+            :class="{ 'done-btn--done': todo.status === 'done' }"
+            @click="confirmToggle(todo)"
+          >✓</button>
+          <button class="delete" @click="confirmDelete(todo)">×</button>
+        </div>
+        <div class="swipe-actions">
+          <button class="swipe-delete" @click="onSwipeDelete(todo)">✕</button>
+        </div>
+      </li>
+    </VueDraggable>
 
   <Teleport to="body">
     <Transition name="modal">
@@ -345,20 +361,22 @@ onUnmounted(() => {
   z-index: 0;
 }
 
-.swipe-up,
 .swipe-delete {
   width: 70px;
+  height: 100%;
   color: #fff;
   border: none;
   font-size: 20px;
   cursor: pointer;
+  background: #ef4444;
 }
 
-.swipe-up     { background: var(--text); }
-.swipe-delete { background: #ef4444; }
-
 @media (hover: hover) {
-  .swipe-up:hover     { filter: brightness(1.15); }
   .swipe-delete:hover { background: #dc2626; }
+}
+
+.drag-ghost {
+  opacity: 0.35;
+  border-radius: 8px;
 }
 </style>
