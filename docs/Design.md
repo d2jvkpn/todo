@@ -16,11 +16,12 @@ Vue 3 移动端 Todo List，用于学习 Vue 3 核心概念、Pinia 状态管理
 
 - 添加 Todo（多行文本输入，Enter = 换行）
 - 勾选完成 / 取消完成（右侧 ✓ 按钮，灰色 → 绿色，点击弹出确认弹窗含 todo 预览文字）
-- 双击编辑内容（textarea，Enter = 换行，Blur = 提交，Esc = 取消，双击自动聚焦弹出输入法）
-- 左滑操作：露出 ↑（上移一位）和 ✕（删除，带确认弹窗）两个按钮
-- 手动排序：左滑后点 ↑ 在当前筛选视图内上移一位（与上一条交换位置）
+- 点击 todo 文字打开详情页（可编辑标题 + 管理子任务，Blur 保存）
+- 左滑操作：露出 ✕（删除，带确认弹窗）按钮
 - 按状态筛选：未完成 / 已完成 / 全部（默认打开"未完成"）
 - 优先级标记（4 级，彩色圆点，点击弹出选择器）
+- 拖拽排序：长按 todo 行 400ms 拖拽重排（vue-draggable-plus / SortableJS），在当前筛选视图内排序，持久化到 localStorage
+- 子任务：每条 todo 可添加多条子任务；全部子任务完成后父任务自动标为完成；列表行显示 done/total 进度徽章
 - i18n：中文 / English
 - 主题切换：跟随系统 / 浅色 / 深色（持久化至 localStorage）
 - 侧边菜单（点击 app icon 打开）：导出 JSON、导入 JSON、**清空数据**（带确认弹窗）、检查更新、主题切换、语言切换、关于
@@ -54,7 +55,8 @@ src/
   id: string,                                    // UUID 或时间戳+随机数降级
   text: string,
   status: 'active' | 'done',
-  priority: 'none' | 'normal' | 'important' | 'urgent'
+  priority: 'none' | 'normal' | 'important' | 'urgent',
+  subtasks: Array<{ id: string, text: string, done: boolean }>
 }
 
 // store state
@@ -72,6 +74,7 @@ localStorage 中已有数据按以下规则迁移：
 |------|----------|
 | 旧格式 `done: boolean` | → `status: 'done'/'active'`，`priority: 'none'` |
 | 已有 `status`，缺少 `priority` | → 补充 `priority: 'none'` |
+| 已有 `status` 和 `priority`，缺少 `subtasks` | → 补充 `subtasks: []` |
 | 结构完整 | → 不变 |
 
 ## 优先级系统
@@ -110,21 +113,24 @@ CSS 变量：
 ### 左滑展开状态
 
 ```
-[优先级圆点] [文字] [✓]   ← 内容层左移 140px →   [↑ 70px] [✕ 70px]
+[优先级圆点] [文字] [进度] [✓]   ← 内容层左移 70px →   [✕ 70px]
 ```
 
 - 内容层：`.item-content`，`transform: translateX()` 滑动
 - 操作层：`.swipe-actions`，`position: absolute; right: 0`，两个等宽按钮
-  - ↑（灰色）：当前筛选视图内上移一位，操作后自动关闭滑出
   - ✕（红色）：触发删除确认弹窗
 - 滑动阈值 48px：超过吸附展开，不足弹回
 - 同一时刻只有一个条目展开；触摸其他位置、点击其他条目均自动关闭
 
-### 编辑状态（双击进入）
+### 详情页（点击 todo 文字进入）
 
-- 文字替换为 `<textarea>`，自动聚焦、弹出输入法
-- Enter = 换行，Esc = 取消，Blur = 提交保存
-- 触摸列表外任意位置 → 立即提交并退出编辑
+底部抽屉（70vh），从底部滑入（`transform: translateY`），背景遮罩 0.25s 淡入；关闭时反向动画后 250ms 卸载组件。
+
+- 顶部拖拽把手
+- 父任务标题（`<textarea>`，blur = 保存；清空时恢复原文）
+- 子任务列表：checkbox 勾选 + 文字（完成时加删除线）+ × 删除
+- 底部输入行：输入子任务文字 + Enter/✓ 添加，添加后自动聚焦继续输入
+- 点击遮罩关闭
 
 ## 组件职责
 
@@ -143,9 +149,9 @@ CSS 变量：
 ### `TodoList.vue`
 - 渲染 `store.filteredTodos`
 - 每项结构：`.swipe-wrap`（overflow:hidden 裁剪容器）→ `.item-content`（滑动层）+ `.swipe-actions`（操作层）
-- 管理左滑手势状态（`swipeOffsets`、`openId`、`draggingId`）
-- 管理内联编辑状态（`editingId`、`editingText`）
-- 全局 `touchstart` 监听：触摸 `.edit-textarea` 外 → 提交编辑；同时关闭已展开的滑出条目
+- 管理左滑手势状态（`swipeOffsets`、`openId`、`draggingId`）和拖拽排序（`dragList`、`VueDraggable`）
+- 管理详情页状态（`selectedTodo`）
+- 全局 `touchstart` 监听：关闭已展开的滑出条目
 - 确认弹窗（`modal` ref）复用于：完成切换、删除
 
 ### `PriorityDot.vue`
@@ -154,6 +160,12 @@ CSS 变量：
 - 选择器内仅含 4 个优先级选项（无"完成"按钮）；标签由组件内 `LABELS` 常量提供（不依赖 locale store）
 - 选择器用 `position: fixed` 避免父容器 overflow 裁剪
 - unmount 时清除 document 点击监听
+
+### `TodoDetail.vue`
+- props：`todo: Object`；emits：`close`
+- 底部抽屉（70vh，`<Teleport to="body">`）
+- 父任务标题可编辑（blur 保存）；子任务 CRUD
+- 进场/退场动画（`isOpen` ref + CSS `transition`，退场延迟 250ms 后 emit close）
 
 ### `SideMenu.vue`
 - `<Teleport to="body">` 侧边抽屉
@@ -169,10 +181,10 @@ CSS 变量：
 ```js
 state:   { todos, filter }
 getters: { filteredTodos }
-actions: { addTodo, toggleTodo, editTodo, deleteTodo, clearAll, setPriority, moveUp, setFilter, exportTodos, importTodos }
+actions: { addTodo, toggleTodo, editTodo, deleteTodo, clearAll, setPriority, setFilter, exportTodos, importTodos, addSubtask, toggleSubtask, deleteSubtask, reorderTodosByIds }
 ```
 
-- `moveUp(id)`：在 `filteredTodos` 中找到前一个条目，交换二者在 `todos[]` 中的位置
+- **`reorderTodosByIds(orderedFilteredIds)`**：将 filteredTodos 的新排列顺序同步到 `todos[]`，保持非过滤条目的相对位置不变
 - `clearAll()`：将 `todos[]` 置为空数组
 
 **localStorage 同步**：`watch(todos, ..., { deep: true })`，初始化时迁移旧数据。

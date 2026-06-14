@@ -24,8 +24,9 @@ App.vue
 │   ├── TodoInput.vue   # Add new todo
 │   └── TodoFilter.vue  # Filter tabs: active / done / all
 └── main
-    └── TodoList.vue    # Scrollable list; manages swipe-reveal and inline-edit state
-        └── PriorityDot.vue  # Per-item priority picker (teleported popover, priority-only)
+    └── TodoList.vue    # Drag-to-reorder (VueDraggable/SortableJS), swipe-reveal delete, tap-to-open detail
+        ├── PriorityDot.vue   # Per-item priority picker (teleported popover)
+        └── TodoDetail.vue    # Bottom sheet: parent text edit + subtask CRUD (Teleport to body)
 ```
 
 `App.vue` tracks two CSS custom properties (`--header-h`, `--menu-top`) via `ResizeObserver` so the side menu can align to the input field regardless of header height. It also instantiates `useThemeStore()` at setup time to apply the saved theme before first render.
@@ -56,16 +57,16 @@ Single source of truth for all todo data. Synced to `localStorage['todos']` via 
 **Todo shape:**
 
 ```js
-{ id: string, text: string, status: 'active' | 'done', priority: 'none' | 'normal' | 'important' | 'urgent' }
+{ id: string, text: string, status: 'active' | 'done', priority: 'none' | 'normal' | 'important' | 'urgent', subtasks: Array<{ id: string, text: string, done: boolean }> }
 ```
 
-**Migration:** on load, old records using `done: boolean` are normalised to `status`, and missing `priority` fields are defaulted to `'none'`.
+**Migration:** on load (and on import), old records using `done: boolean` are normalised to `status`; missing `priority` fields default to `'none'`; missing `subtasks` fields default to `[]`.
 
 **ID generation:** `crypto.randomUUID()` in secure contexts (HTTPS / localhost); timestamp + random suffix over plain LAN HTTP.
 
 **Export:** prefers the File System Access API (`showSaveFilePicker`); falls back to a synthetic `<a>` download.
 
-**`moveUp(id)`:** finds the preceding item in `filteredTodos`, then swaps the two items in the underlying `todos[]` array. No-op when already at the top of the filtered view.
+**`reorderTodosByIds(orderedFilteredIds)`:** rebuilds `todos[]` so the filtered items appear in the new order while non-filtered items keep their relative positions.
 
 **`clearAll()`:** sets `todos[]` to `[]`; the deep watcher persists the empty array to `localStorage`.
 
