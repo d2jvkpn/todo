@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, watch, onMounted, onUnmounted } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import { useTodosStore } from '../stores/todos'
 import { useLocaleStore } from '../stores/locale'
@@ -7,9 +7,6 @@ import PriorityDot from './PriorityDot.vue'
 
 const store = useTodosStore()
 const locale = useLocaleStore()
-const editingId = ref(null)
-const editingText = ref('')
-
 // { msg, onConfirm, danger? }
 const modal = ref(null)
 
@@ -32,34 +29,6 @@ function confirmDelete(todo) {
   showConfirm(locale.t.confirmDelete(preview), () => store.deleteTodo(todo.id), true)
 }
 
-function startEdit(todo) {
-  editingId.value = todo.id
-  editingText.value = todo.text
-  nextTick(() => {
-    const ta = document.querySelector('.edit-textarea')
-    if (ta) {
-      ta.style.height = 'auto'
-      ta.style.height = ta.scrollHeight + 'px'
-      ta.focus()
-    }
-  })
-}
-
-function resizeTextarea(e) {
-  e.target.style.height = 'auto'
-  e.target.style.height = e.target.scrollHeight + 'px'
-}
-
-function commitEdit(id) {
-  const trimmed = editingText.value.trim()
-  if (trimmed) store.editTodo(id, trimmed)
-  editingId.value = null
-}
-
-function cancelEdit() {
-  editingId.value = null
-}
-
 // ── swipe-to-reveal delete ──────────────────────────────────────────────────
 const REVEAL_W = 70      // px — delete button only
 const SNAP_THRESHOLD = 48 // px — minimum drag distance to snap open
@@ -74,9 +43,6 @@ function getOffset(id) {
 }
 
 function onTouchStart(e, id) {
-  if (editingId.value && editingId.value !== id) {
-    commitEdit(editingId.value)
-  }
   if (openId.value && openId.value !== id) {
     swipeOffsets[openId.value] = 0
     openId.value = null
@@ -120,12 +86,10 @@ function onDragEnd() {
   store.reorderTodosByIds(dragList.value.map(t => t.id))
 }
 
+const selectedTodo = ref(null)
+
 function onDocumentTouch(e) {
-  if (editingId.value && !e.target.closest('.edit-textarea')) {
-    commitEdit(editingId.value)
-  }
   if (openId.value) {
-    // tapping the revealed action buttons — let their @click handle it
     if (e.target.closest('.swipe-actions')) return
     swipeOffsets[openId.value] = 0
     openId.value = null
@@ -182,17 +146,13 @@ onUnmounted(() => {
             :priority="todo.priority || 'none'"
             @update:priority="store.setPriority(todo.id, $event)"
           />
-          <span v-if="editingId !== todo.id" @dblclick="startEdit(todo)">
+          <span @click="selectedTodo = todo">
             {{ todo.text }}
           </span>
-          <textarea
-            v-else
-            v-model="editingText"
-            class="edit-textarea"
-            @keyup.escape="cancelEdit"
-            @blur="commitEdit(todo.id)"
-            @input="resizeTextarea"
-          />
+          <span
+            v-if="todo.subtasks && todo.subtasks.length > 0"
+            class="subtask-badge"
+          >{{ todo.subtasks.filter(s => s.done).length }}/{{ todo.subtasks.length }}</span>
           <button
             class="done-btn"
             :class="{ 'done-btn--done': todo.status === 'done' }"
@@ -284,20 +244,13 @@ onUnmounted(() => {
   min-width: 0;
 }
 
-.edit-textarea {
-  flex: 1;
-  padding: 4px 8px;
-  border: 1px solid var(--accent);
-  border-radius: 4px;
-  font-size: 16px;
-  font-family: inherit;
-  line-height: 1.5;
-  background: var(--bg);
-  color: var(--text-h);
-  outline: none;
-  resize: none;
-  overflow: hidden;
-  min-height: 28px;
+.subtask-badge {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--text);
+  opacity: 0.5;
+  min-width: 26px;
+  text-align: right;
 }
 
 /* done toggle button */
