@@ -85,13 +85,6 @@ export const useTodosStore = defineStore('todos', () => {
     const sub = todo.subtasks.find(s => s.id === subtaskId)
     if (!sub) return
     sub.done = !sub.done
-    if (
-      todo.status === 'active' &&
-      todo.subtasks.length > 0 &&
-      todo.subtasks.every(s => s.done)
-    ) {
-      toggleTodo(todoId)
-    }
   }
 
   function reorderTodosByIds(orderedFilteredIds) {
