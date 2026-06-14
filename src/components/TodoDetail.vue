@@ -1,6 +1,7 @@
 <script setup>
 import { ref, nextTick } from 'vue'
 import { useTodosStore } from '../stores/todos'
+import { useLocaleStore } from '../stores/locale'
 
 const props = defineProps({
   todo: { type: Object, required: true }
@@ -8,6 +9,7 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const store = useTodosStore()
+const locale = useLocaleStore()
 const isOpen = ref(false)
 const editText = ref(props.todo.text)
 const newSubtaskText = ref('')
@@ -47,7 +49,7 @@ function addSubtask() {
         <textarea
           v-model="editText"
           class="detail-title"
-          rows="2"
+          rows="1"
           @blur="saveText"
         />
         <ul class="subtask-list">
@@ -70,7 +72,7 @@ function addSubtask() {
             ref="subtaskInputRef"
             v-model="newSubtaskText"
             class="subtask-input"
-            placeholder="添加子任务…"
+            :placeholder="locale.t.addSubtask"
             @keyup.enter="addSubtask"
           />
           <button class="subtask-confirm" @click="addSubtask">✓</button>
@@ -102,7 +104,7 @@ function addSubtask() {
   padding: 12px 16px 32px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
   overflow-y: auto;
   transform: translateY(100%);
   transition: transform 0.25s ease;
@@ -127,8 +129,7 @@ function addSubtask() {
   color: var(--text-h);
   background: transparent;
   border: none;
-  border-bottom: 1px solid var(--border);
-  padding: 4px 0 8px;
+  padding: 4px 0 0;
   resize: none;
   outline: none;
   font-family: inherit;
@@ -150,7 +151,7 @@ function addSubtask() {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 7px 4px;
+  padding: 8px 4px;
 }
 
 .subtask-row input[type="checkbox"] {
