@@ -1,0 +1,27 @@
+example.com, *.example.com {
+  @apps host apps.example.com
+
+  handle @apps {
+    redir /todo /todo/ 308
+
+    handle_path /todo/* {
+      root * /data/todo
+      try_files {path} /index.html
+      file_server
+    }
+  }
+
+  handle {
+    respond "Caddy - Unknown service" 404
+  }
+
+  log {
+    output file /logs/examples.log {
+      roll_size 512MiB
+      roll_keep 10
+      roll_keep_for 720h
+    }
+    format json
+  }
+
+}

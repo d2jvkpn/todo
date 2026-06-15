@@ -1,0 +1,5 @@
+# path: configs/deploy.yaml
+
+release:
+  host: ssh_remote_host
+  path: path_to_todo
