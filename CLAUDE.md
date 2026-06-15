@@ -27,7 +27,7 @@ All commands are run from the repo root. See `README.md` for the full command re
 
 ## Commits
 
-- **Never commit automatically.** Always wait for an explicit request ("帮我提交", "commit this", etc.) before running `git commit`.
+- **Never commit automatically.** Only run `git commit` when the user explicitly types `git commit`.
 - Write commit messages in **English**.
 - Use standard prefixes: `feat:`, `fix:`, `docs:`, etc.
 - Every AI-assisted commit must include: `Assisted-by: <agent_name>:<model_version>`
