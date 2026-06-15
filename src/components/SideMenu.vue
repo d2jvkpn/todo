@@ -261,6 +261,10 @@ function closeAll() {
               <span class="about-modal-meta-value">{{ localeStore.t.version }}</span>
             </div>
             <div class="about-modal-meta-row">
+              <span class="about-modal-meta-label">{{ localeStore.t.builtLabel }}</span>
+              <span class="about-modal-meta-value">{{ localeStore.t.built }}</span>
+            </div>
+            <div class="about-modal-meta-row">
               <span class="about-modal-meta-label">{{ localeStore.t.cachedLabel }}</span>
               <span class="about-modal-meta-value">{{ configCachedText }}</span>
             </div>

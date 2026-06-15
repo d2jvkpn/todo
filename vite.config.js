@@ -42,6 +42,11 @@ export default defineConfig({
 
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+    __BUILD_DATE__: JSON.stringify((() => {
+      const d = new Date()
+      const pad = (n) => String(n).padStart(2, '0')
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${Math.floor(d.getTime() / 1000)}`
+    })()),
   },
 
   plugins: [vue(), pwa],
