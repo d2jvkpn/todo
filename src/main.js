@@ -31,8 +31,9 @@ async function fetchNetworkConfig(configUrl) {
   const config = await response.json()
   const cachedAt = new Date().toISOString()
 
+  // 写入 Cache Storage，供离线时回退读取；Safari 私有模式下 caches 不可用，需降级
   if ('caches' in window) {
-    const cache = await caches.open(CONFIG_CACHE_NAME)
+    const cache = await caches.open(CONFIG_CACHE_NAME)  // 打开（或创建）专属缓存桶
     await cache.put(configUrl.toString(), new Response(JSON.stringify(config), {
       headers: { 'Content-Type': 'application/json' },
     }))
@@ -45,11 +46,13 @@ async function fetchNetworkConfig(configUrl) {
 }
 
 async function fetchCachedConfig(configUrl) {
+  // 优先从 Cache Storage 读取离线副本
   if ('caches' in window) {
     const cachedResponse = await caches.match(configUrl.toString())
     if (cachedResponse?.ok) return cachedResponse.json()
   }
 
+  // Cache Storage 未命中时降级走网络（Service Worker 可能拦截并返回缓存）
   const response = await fetch(configUrl)
   if (!response.ok) throw new Error(`!!! Failed to load cached config: ${response.status}`)
   return response.json()

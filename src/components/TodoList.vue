@@ -3,6 +3,7 @@ import { ref, reactive, watch, onMounted, onUnmounted } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import { useTodosStore } from '@/stores/todos'
 import { useLocaleStore } from '@/stores/locale'
+import { truncate } from '@/utils/utils'
 import PriorityDot from '@/components/PriorityDot.vue'
 import TodoDetail from '@/components/TodoDetail.vue'
 
@@ -13,11 +14,6 @@ const modal = ref(null)
 
 function showConfirm(msg, onConfirm, danger = false) {
   modal.value = { msg, onConfirm, danger }
-}
-
-function truncate(text, max = 15) {
-  const oneline = text.replace(/\s+/g, ' ').trim()
-  return oneline.length > max ? oneline.slice(0, max) + '…' : oneline
 }
 
 function confirmToggle(todo) {

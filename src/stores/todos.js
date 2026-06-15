@@ -1,13 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
-
-// crypto.randomUUID() 仅在安全上下文（HTTPS / localhost）可用，
-// 通过局域网 IP 访问时降级为时间戳 + 随机数
-function generateId() {
-  return window.isSecureContext
-    ? crypto.randomUUID()
-    : Date.now().toString(36) + Math.random().toString(36).slice(2)
-}
+import { generateId, downloadFile } from '@/utils/utils'
 
 export const useTodosStore = defineStore('todos', () => {
   const todos = ref(JSON.parse(localStorage.getItem('todos') || '[]'))
@@ -94,33 +87,8 @@ export const useTodosStore = defineStore('todos', () => {
 
   async function exportTodos() {
     const now = new Date()
-    const date = now.toISOString().slice(0, 10)
-    const ts = now.getTime()
-    const filename = `TODO.${date}-${ts}.json`
-    const content = JSON.stringify(todos.value, null, 2)
-
-    if ('showSaveFilePicker' in window) {
-      try {
-        const handle = await window.showSaveFilePicker({
-          suggestedName: filename,
-          types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
-        })
-        const writable = await handle.createWritable()
-        await writable.write(content)
-        await writable.close()
-      } catch {
-        // 用户取消，不做任何操作
-      }
-    } else {
-      // 降级：触发浏览器下载
-      const blob = new Blob([content], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = filename
-      a.click()
-      URL.revokeObjectURL(url)
-    }
+    const filename = `TODO.${now.toISOString().slice(0, 10)}-${now.getTime()}.json`
+    await downloadFile(JSON.stringify(todos.value, null, 2), filename)
   }
 
   function importTodos(file) {

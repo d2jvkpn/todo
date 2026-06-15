@@ -10,6 +10,7 @@ function normalizeBasePath(path) {
 }
 
 const pwa = VitePWA({
+  // 新 SW 就绪后自动 skipWaiting + clients.claim，无需用户手动刷新（另一选项 'prompt' 则停在 waiting 状态，由应用代码决定何时激活）
   registerType: 'autoUpdate',
   includeAssets: ['app.json', 'favicon.svg'],
   manifest: {
@@ -20,8 +21,8 @@ const pwa = VitePWA({
     background_color: '#f2f2f7',
     display: 'standalone',
     icons: [
-      { src: 'pwa-192x192.png',         sizes: '192x192', type: 'image/png' },
-      { src: 'pwa-512x512.png',         sizes: '512x512', type: 'image/png' },
+      { src: 'pwa-192x192.png',          sizes: '192x192', type: 'image/png' },
+      { src: 'pwa-512x512.png',          sizes: '512x512', type: 'image/png' },
       { src: 'pwa-maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
   },
