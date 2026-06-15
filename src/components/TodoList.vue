@@ -29,7 +29,8 @@ function confirmToggle(todo) {
 }
 
 function confirmDelete(todo) {
-  showConfirm(locale.t.confirmDelete(truncate(todo.text)), () => store.deleteTodo(todo.id), true)
+  const msg = locale.t.confirmDelete(truncate(todo.text))
+  showConfirm(msg, () => store.deleteTodo(todo.id), true)
 }
 
 // ── swipe-to-reveal delete ──────────────────────────────────────────────────
@@ -110,6 +111,7 @@ onMounted(() => {
   document.addEventListener('click', closeOpenSwipe)
   document.addEventListener('touchstart', onDocumentTouch, { passive: true })
 })
+
 onUnmounted(() => {
   document.removeEventListener('click', closeOpenSwipe)
   document.removeEventListener('touchstart', onDocumentTouch)
@@ -149,13 +151,10 @@ onUnmounted(() => {
             :priority="todo.priority"
             @update:priority="store.setPriority(todo.id, $event)"
           />
-          <span @click="selectedTodo = todo">
-            {{ todo.text }}
+          <span @click="selectedTodo = todo"> {{ todo.text }} </span>
+          <span v-if="todo.subtasks.length > 0" class="subtask-badge">
+            {{ todo.subtasks.filter(s => s.done).length }}/{{ todo.subtasks.length }}
           </span>
-          <span
-            v-if="todo.subtasks.length > 0"
-            class="subtask-badge"
-          >{{ todo.subtasks.filter(s => s.done).length }}/{{ todo.subtasks.length }}</span>
           <button
             class="done-btn"
             :class="{ 'done-btn--done': todo.status === 'done' }"
@@ -224,8 +223,8 @@ onUnmounted(() => {
 .item-content {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 12px;
+  gap: 10px;
+  padding: 10px 10px;
   background: var(--surface, #fff);
   transition: transform 0.22s ease;
   will-change: transform;

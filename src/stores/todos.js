@@ -142,5 +142,13 @@ export const useTodosStore = defineStore('todos', () => {
     })
   }
 
-  return { todos, filter, filteredTodos, addTodo, toggleTodo, editTodo, deleteTodo, clearAll, setPriority, setFilter, exportTodos, importTodos, addSubtask, editSubtask, toggleSubtask, deleteSubtask, reorderTodosByIds }
+  return {
+    todos,
+    filter, filteredTodos,
+    addTodo, toggleTodo, editTodo, deleteTodo, clearAll,
+    setPriority, setFilter,
+    exportTodos, importTodos,
+    addSubtask, editSubtask, toggleSubtask, deleteSubtask,
+    reorderTodosByIds,
+  }
 })
