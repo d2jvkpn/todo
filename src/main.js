@@ -8,6 +8,7 @@ const CONFIG_CACHE_NAME = 'todo-config'
 const CONFIG_CACHED_AT_KEY = 'appConfigCachedAt'
 const CONFIG_CACHED_EVENT = 'app-config-cached'
 
+// 根据环境变量决定配置文件路径，支持多环境部署
 function getConfigUrl() {
   const configFile = import.meta.env.VITE_APP_CONFIG || 'app.json'
   return new URL(import.meta.env.BASE_URL + configFile, window.location.origin)
@@ -18,9 +19,10 @@ function applyAppConfig(config) {
   if (config.appName) document.title = config.appName
 }
 
+// 始终走网络拉取最新配置，并写入 Cache Storage 供离线回退
 async function fetchNetworkConfig(configUrl) {
   const networkUrl = new URL(configUrl)
-  networkUrl.searchParams.set('_cacheBust', Date.now().toString())
+  networkUrl.searchParams.set('_cacheBust', Date.now().toString())  // 绕过 HTTP 缓存
 
   const response = await fetch(networkUrl, { cache: 'no-store' })
   if (!response.ok) throw new Error(`!!! Failed to load config: ${response.status}`)
@@ -45,6 +47,7 @@ async function fetchNetworkConfig(configUrl) {
   return config
 }
 
+// 离线或网络失败时的降级路径：先查 Cache Storage，再走 SW 缓存兜底
 async function fetchCachedConfig(configUrl) {
   // 优先从 Cache Storage 读取离线副本
   if ('caches' in window) {
@@ -58,6 +61,7 @@ async function fetchCachedConfig(configUrl) {
   return response.json()
 }
 
+// 启动时加载配置：优先网络，失败时自动降级到缓存
 async function loadAppConfig() {
   const configUrl = getConfigUrl()
 
@@ -69,6 +73,7 @@ async function loadAppConfig() {
   }
 }
 
+// 在线时强制拉取最新配置并立即生效
 async function refreshAppConfig() {
   if (!navigator.onLine) throw new Error('offline')
   const config = await fetchNetworkConfig(getConfigUrl())
@@ -76,17 +81,21 @@ async function refreshAppConfig() {
   return config
 }
 
+// 检查 SW 和配置是否有新版本，并在有新 SW 时立即激活它（跳过 waiting 阶段）
 async function checkForUpdates() {
   if (!navigator.onLine) throw new Error('offline')
+  // getRegistration 在不支持 SW 的环境（如 file:// 或隐私模式）返回 undefined，用 ?. 防御
   const registration = await navigator.serviceWorker?.getRegistration?.()
-  await registration?.update()
+  await registration?.update()   // 触发浏览器重新请求 SW 脚本，若有变化则下载新版本
   await refreshAppConfig()
 
+  // update() 后若存在 waiting 的新 SW，说明新版本已就绪；传 true 跳过等待立即接管
   if (registration?.waiting) {
     updateServiceWorker(true)
   }
 }
 
+// 暴露给 UI 层调用（如"检查更新"按钮）
 window.todoCheckForUpdates = checkForUpdates
 
 async function bootstrap() {
@@ -102,6 +111,7 @@ async function bootstrap() {
   app.mount('#app')
 }
 
+// immediate: true 表示 SW 激活后立即接管所有页面，无需等待页面刷新
 const updateServiceWorker = registerSW({ immediate: true })
 
 bootstrap()

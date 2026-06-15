@@ -9,8 +9,7 @@ import TodoDetail from '@/components/TodoDetail.vue'
 
 const store = useTodosStore()
 const locale = useLocaleStore()
-// { msg, onConfirm, danger? }
-const modal = ref(null)
+const modal = ref(null) // { msg, onConfirm, danger? }
 
 function showConfirm(msg, onConfirm, danger = false) {
   modal.value = { msg, onConfirm, danger }
@@ -30,11 +29,11 @@ function confirmDelete(todo) {
 }
 
 // ── swipe-to-reveal delete ──────────────────────────────────────────────────
-const REVEAL_W = 70      // px — delete button only
-const SNAP_THRESHOLD = 48 // px — minimum drag distance to snap open
+const REVEAL_W = 50       // px — delete button only, 删除按钮的宽度与滑动到底偏移量相同
+const SNAP_THRESHOLD = 40 // px — minimum drag distance to snap open, 吸附触发的最小拖动距离
 
-const swipeOffsets = reactive({}) // { [id]: number }
-const openId = ref(null)
+const swipeOffsets = reactive({}) // { [id]: number }, 滑动 offsets
+const openId = ref(null)          // 全局唯一锁，确保同时只有一项处于展开状态
 const draggingId = ref(null)
 let _startX = 0
 
@@ -319,7 +318,7 @@ onUnmounted(() => {
 }
 
 .swipe-delete {
-  width: 70px;
+  width: 50px;
   height: 100%;
   color: #fff;
   border: none;
