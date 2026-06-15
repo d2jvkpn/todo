@@ -14,8 +14,43 @@ const isOpen = ref(false)
 const editText = ref(props.todo.text)
 const newSubtaskText = ref('')
 const subtaskInputRef = ref(null)
+const titleRef = ref(null)
+const subtaskComposing = ref(false)
+const editingSubtaskId = ref(null)
+const editingSubtaskText = ref('')
+const subtaskEditComposing = ref(false)
 
-nextTick(() => { isOpen.value = true })
+function startEditSubtask(sub) {
+  editingSubtaskId.value = sub.id
+  editingSubtaskText.value = sub.text
+  nextTick(() => {
+    const el = document.getElementById('subtask-edit-' + sub.id)
+    el?.focus()
+    el?.select()
+  })
+}
+
+function saveSubtask(sub) {
+  const t = editingSubtaskText.value.trim()
+  if (t && t !== sub.text) store.editSubtask(props.todo.id, sub.id, t)
+  editingSubtaskId.value = null
+}
+
+function handleSubtaskEditEnter(sub) {
+  if (!subtaskEditComposing.value) saveSubtask(sub)
+}
+
+function autoResize() {
+  const el = titleRef.value
+  if (!el) return
+  el.style.height = 'auto'
+  el.style.height = el.scrollHeight + 'px'
+}
+
+nextTick(() => {
+  isOpen.value = true
+  autoResize()
+})
 
 function close() {
   isOpen.value = false
@@ -35,6 +70,10 @@ function addSubtask() {
   newSubtaskText.value = ''
   nextTick(() => subtaskInputRef.value?.focus())
 }
+
+function handleSubtaskEnter() {
+  if (!subtaskComposing.value) addSubtask()
+}
 </script>
 
 <template>
@@ -47,11 +86,14 @@ function addSubtask() {
       <div class="detail-sheet">
         <div class="detail-handle" />
         <textarea
+          ref="titleRef"
           v-model="editText"
           class="detail-title"
           rows="1"
+          @input="autoResize"
           @blur="saveText"
         />
+        <div class="subtask-scroll">
         <ul class="subtask-list">
           <li
             v-for="sub in todo.subtasks"
@@ -63,17 +105,35 @@ function addSubtask() {
               :checked="sub.done"
               @change="store.toggleSubtask(todo.id, sub.id)"
             />
-            <span :class="{ 'subtask-done': sub.done }">{{ sub.text }}</span>
+            <input
+              v-if="editingSubtaskId === sub.id"
+              :id="'subtask-edit-' + sub.id"
+              v-model="editingSubtaskText"
+              class="subtask-edit-input"
+              @compositionstart="subtaskEditComposing = true"
+              @compositionend="subtaskEditComposing = false"
+              @keydown.enter.prevent="handleSubtaskEditEnter(sub)"
+              @keydown.esc="editingSubtaskId = null"
+              @blur="saveSubtask(sub)"
+            />
+            <span
+              v-else
+              :class="{ 'subtask-done': sub.done }"
+              @click="startEditSubtask(sub)"
+            >{{ sub.text }}</span>
             <button class="subtask-delete" @click="store.deleteSubtask(todo.id, sub.id)">×</button>
           </li>
         </ul>
+        </div>
         <div class="subtask-add">
           <input
             ref="subtaskInputRef"
             v-model="newSubtaskText"
             class="subtask-input"
             :placeholder="locale.t.addSubtask"
-            @keyup.enter="addSubtask"
+            @compositionstart="subtaskComposing = true"
+            @compositionend="subtaskComposing = false"
+            @keydown.enter.prevent="handleSubtaskEnter"
           />
           <button class="subtask-confirm" @click="addSubtask">✓</button>
         </div>
@@ -105,9 +165,15 @@ function addSubtask() {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  overflow-y: auto;
+  overflow: hidden;
   transform: translateY(100%);
   transition: transform 0.25s ease;
+}
+
+.subtask-scroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 .detail-backdrop.is-open .detail-sheet {
   transform: translateY(0);
@@ -136,6 +202,9 @@ function addSubtask() {
   line-height: 1.5;
   overflow: hidden;
   box-sizing: border-box;
+  height: auto;
+  flex-shrink: 0;
+  max-height: 40vh;
 }
 
 .subtask-list {
@@ -144,14 +213,14 @@ function addSubtask() {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
 }
 
 .subtask-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 4px;
+  padding: 5px 4px;
 }
 
 .subtask-row input[type="checkbox"] {
@@ -167,6 +236,19 @@ function addSubtask() {
   font-size: 15px;
   color: var(--text-h);
   word-break: break-word;
+  cursor: text;
+}
+
+.subtask-edit-input {
+  flex: 1;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  font-size: 16px;
+  color: var(--text-h);
+  outline: none;
+  font-family: inherit;
+  padding: 0;
 }
 
 .subtask-done {
@@ -196,7 +278,7 @@ function addSubtask() {
   align-items: center;
   border-top: 1px solid var(--border);
   padding-top: 10px;
-  margin-top: auto;
+  flex-shrink: 0;
 }
 
 .subtask-input {

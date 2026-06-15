@@ -79,6 +79,13 @@ export const useTodosStore = defineStore('todos', () => {
     todo.subtasks = todo.subtasks.filter(s => s.id !== subtaskId)
   }
 
+  function editSubtask(todoId, subtaskId, text) {
+    const todo = todos.value.find(t => t.id === todoId)
+    if (!todo) return
+    const sub = todo.subtasks.find(s => s.id === subtaskId)
+    if (sub) sub.text = text
+  }
+
   function toggleSubtask(todoId, subtaskId) {
     const todo = todos.value.find(t => t.id === todoId)
     if (!todo) return
@@ -161,5 +168,5 @@ export const useTodosStore = defineStore('todos', () => {
     })
   }
 
-  return { todos, filter, filteredTodos, addTodo, toggleTodo, editTodo, deleteTodo, clearAll, setPriority, setFilter, exportTodos, importTodos, addSubtask, toggleSubtask, deleteSubtask, reorderTodosByIds }
+  return { todos, filter, filteredTodos, addTodo, toggleTodo, editTodo, deleteTodo, clearAll, setPriority, setFilter, exportTodos, importTodos, addSubtask, editSubtask, toggleSubtask, deleteSubtask, reorderTodosByIds }
 })
