@@ -16,7 +16,7 @@ example.com, *.example.com {
   }
 
   log {
-    output file /logs/examples.log {
+    output file /logs/example.com.caddy.log {
       roll_size 512MiB
       roll_keep 10
       roll_keep_for 720h
