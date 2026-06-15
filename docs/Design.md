@@ -44,6 +44,8 @@ src/
 │   ├── TodoList.vue
 │   ├── PriorityDot.vue
 │   └── SideMenu.vue
+├── utils/
+│   └── utils.js        # generateId, downloadFile, truncate
 └── style.css
 ```
 
@@ -68,14 +70,7 @@ src/
 
 ### 数据迁移
 
-localStorage 中已有数据按以下规则迁移：
-
-| 情况 | 迁移规则 |
-|------|----------|
-| 旧格式 `done: boolean` | → `status: 'done'/'active'`，`priority: 'none'` |
-| 已有 `status`，缺少 `priority` | → 补充 `priority: 'none'` |
-| 已有 `status` 和 `priority`，缺少 `subtasks` | → 补充 `subtasks: []` |
-| 结构完整 | → 不变 |
+当前代码不含迁移逻辑，直接从 localStorage 读取原始数组。导入时仅验证 `id + text + status` 字段存在，不做字段补全。
 
 ## 优先级系统
 
@@ -157,7 +152,7 @@ CSS 变量：
 ### `PriorityDot.vue`
 - props：`priority: string`；emits：`update:priority`
 - 内部状态 `open` 控制选择器显示
-- 选择器内仅含 4 个优先级选项（无"完成"按钮）；标签由组件内 `LABELS` 常量提供（不依赖 locale store）
+- 选择器内仅含 4 个优先级选项（无"完成"按钮）；标签通过 `useLocaleStore()` 的 `t.priorityNone/Normal/Important/Urgent` 提供
 - 选择器用 `position: fixed` 避免父容器 overflow 裁剪
 - unmount 时清除 document 点击监听
 
@@ -181,7 +176,7 @@ CSS 变量：
 ```js
 state:   { todos, filter }
 getters: { filteredTodos }
-actions: { addTodo, toggleTodo, editTodo, deleteTodo, clearAll, setPriority, setFilter, exportTodos, importTodos, addSubtask, toggleSubtask, deleteSubtask, reorderTodosByIds }
+actions: { addTodo, toggleTodo, editTodo, deleteTodo, clearAll, setPriority, setFilter, exportTodos, importTodos, addSubtask, editSubtask, toggleSubtask, deleteSubtask, reorderTodosByIds }
 ```
 
 - **`reorderTodosByIds(orderedFilteredIds)`**：将 filteredTodos 的新排列顺序同步到 `todos[]`，保持非过滤条目的相对位置不变

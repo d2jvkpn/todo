@@ -11,6 +11,16 @@
 | Runtime config | `public/app.json` fetched at bootstrap |
 | Persistence | `localStorage` (`todos`, `locale`, `theme`, `appConfigCachedAt`) |
 
+## Utilities
+
+`src/utils/utils.js` exports three pure helpers used across stores and components:
+
+| Function | Description |
+|----------|-------------|
+| `generateId()` | UUID in secure contexts; timestamp + random suffix over plain HTTP |
+| `downloadFile(content, filename, mimeType)` | File System Access API with `<a>` fallback |
+| `truncate(text, max)` | Collapses whitespace and truncates to `max` chars with `…` |
+
 ## Entry point
 
 `main.js` loads `app.json` (path configurable via `VITE_APP_CONFIG`) before mounting. Strategy: **network-first** (cache-busted via `?_cacheBust`, bypasses HTTP cache), writing through to the **Cache API** bucket `todo-config`; falls back to the Cache API entry on network failure. On each successful fetch, the timestamp is saved to `localStorage['appConfigCachedAt']` and broadcast via the custom event `app-config-cached` so `SideMenu.vue` can update the displayed time without a reload.
@@ -60,7 +70,7 @@ Single source of truth for all todo data. Synced to `localStorage['todos']` via 
 { id: string, text: string, status: 'active' | 'done', priority: 'none' | 'normal' | 'important' | 'urgent', subtasks: Array<{ id: string, text: string, done: boolean }> }
 ```
 
-**Migration:** on load (and on import), old records using `done: boolean` are normalised to `status`; missing `priority` fields default to `'none'`; missing `subtasks` fields default to `[]`.
+**Migration:** none — the store loads the raw array from localStorage as-is. Import validation checks only that each item has `id`, `text`, and `status` fields.
 
 **ID generation:** `crypto.randomUUID()` in secure contexts (HTTPS / localhost); timestamp + random suffix over plain LAN HTTP.
 
