@@ -1,6 +1,6 @@
 <script setup>
-import { useTodosStore } from '../stores/todos'
-import { useLocaleStore } from '../stores/locale'
+import { useTodosStore } from '@/stores/todos'
+import { useLocaleStore } from '@/stores/locale'
 
 const store = useTodosStore()
 const locale = useLocaleStore()

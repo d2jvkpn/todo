@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import './style.css'
-import App from './App.vue'
+import App from '@/App.vue'
 import { registerSW } from 'virtual:pwa-register'
 
 const CONFIG_CACHE_NAME = 'todo-config'
@@ -10,12 +10,11 @@ const CONFIG_CACHED_EVENT = 'app-config-cached'
 
 function getConfigUrl() {
   const configFile = import.meta.env.VITE_APP_CONFIG || 'app.json'
-  const url = new URL(import.meta.env.BASE_URL + configFile, window.location.origin)
-  return url
+  return new URL(import.meta.env.BASE_URL + configFile, window.location.origin)
 }
 
 function applyAppConfig(config) {
-  console.log('==> App config: ' + JSON.stringify(config))
+  console.log(`==> App config: ${JSON.stringify(config)}`)
   if (config.appName) document.title = config.appName
 }
 
@@ -24,10 +23,10 @@ async function fetchNetworkConfig(configUrl) {
   networkUrl.searchParams.set('_cacheBust', Date.now().toString())
 
   const response = await fetch(networkUrl, { cache: 'no-store' })
-  if (!response.ok) throw new Error('!!! Failed to load config: ' + response.status)
+  if (!response.ok) throw new Error(`!!! Failed to load config: ${response.status}`)
 
   const ct = response.headers.get('content-type') || ''
-  if (!ct.includes('json')) throw new Error('!!! Config is not JSON (got: ' + ct + ')')
+  if (!ct.includes('json')) throw new Error(`!!! Config is not JSON (got: ${ct})`)
 
   const config = await response.json()
   const cachedAt = new Date().toISOString()
@@ -52,7 +51,7 @@ async function fetchCachedConfig(configUrl) {
   }
 
   const response = await fetch(configUrl)
-  if (!response.ok) throw new Error('!!! Failed to load cached config: ' + response.status)
+  if (!response.ok) throw new Error(`!!! Failed to load cached config: ${response.status}`)
   return response.json()
 }
 

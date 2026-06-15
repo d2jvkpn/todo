@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useLocaleStore } from '@/stores/locale'
 
 const props = defineProps({
   priority: { type: String, default: 'none' }
@@ -11,8 +12,14 @@ const dotRef = ref(null)
 const pickerPos = ref({ top: 0, left: 0 })
 
 const OPTIONS = ['none', 'normal', 'important', 'urgent']
+const locale = useLocaleStore()
 
-const LABELS = { none: '无', normal: '普通', important: '重要', urgent: '紧急' }
+const labels = computed(() => ({
+  none: locale.t.priorityNone,
+  normal: locale.t.priorityNormal,
+  important: locale.t.priorityImportant,
+  urgent: locale.t.priorityUrgent,
+}))
 
 function openPicker(e) {
   e.stopPropagation()
@@ -65,7 +72,7 @@ onUnmounted(() => document.removeEventListener('click', close))
             @click="choose(opt, $event)"
           >
             <span class="pdot-opt-dot" :class="`pdot--${opt}`" />
-            <span class="pdot-opt-label">{{ LABELS[opt] }}</span>
+            <span class="pdot-opt-label">{{ labels[opt] }}</span>
           </button>
         </div>
       </div>

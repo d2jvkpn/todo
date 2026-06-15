@@ -1,10 +1,10 @@
 <script setup>
 import { ref, reactive, watch, onMounted, onUnmounted } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
-import { useTodosStore } from '../stores/todos'
-import { useLocaleStore } from '../stores/locale'
-import PriorityDot from './PriorityDot.vue'
-import TodoDetail from './TodoDetail.vue'
+import { useTodosStore } from '@/stores/todos'
+import { useLocaleStore } from '@/stores/locale'
+import PriorityDot from '@/components/PriorityDot.vue'
+import TodoDetail from '@/components/TodoDetail.vue'
 
 const store = useTodosStore()
 const locale = useLocaleStore()
@@ -15,9 +15,13 @@ function showConfirm(msg, onConfirm, danger = false) {
   modal.value = { msg, onConfirm, danger }
 }
 
+function truncate(text, max = 15) {
+  const oneline = text.replace(/\s+/g, ' ').trim()
+  return oneline.length > max ? oneline.slice(0, max) + '…' : oneline
+}
+
 function confirmToggle(todo) {
-  const oneline = todo.text.replace(/\s+/g, ' ').trim()
-  const preview = oneline.length > 15 ? oneline.slice(0, 15) + '…' : oneline
+  const preview = truncate(todo.text)
   const msg = todo.status === 'done'
     ? locale.t.confirmMarkUndone(preview)
     : locale.t.confirmMarkDone(preview)
@@ -25,9 +29,7 @@ function confirmToggle(todo) {
 }
 
 function confirmDelete(todo) {
-  const oneline = todo.text.replace(/\s+/g, ' ').trim()
-  const preview = oneline.length > 15 ? oneline.slice(0, 15) + '…' : oneline
-  showConfirm(locale.t.confirmDelete(preview), () => store.deleteTodo(todo.id), true)
+  showConfirm(locale.t.confirmDelete(truncate(todo.text)), () => store.deleteTodo(todo.id), true)
 }
 
 // ── swipe-to-reveal delete ──────────────────────────────────────────────────
@@ -144,14 +146,14 @@ onUnmounted(() => {
           :style="{ transform: `translateX(${getOffset(todo.id)}px)` }"
         >
           <PriorityDot
-            :priority="todo.priority || 'none'"
+            :priority="todo.priority"
             @update:priority="store.setPriority(todo.id, $event)"
           />
           <span @click="selectedTodo = todo">
             {{ todo.text }}
           </span>
           <span
-            v-if="todo.subtasks && todo.subtasks.length > 0"
+            v-if="todo.subtasks.length > 0"
             class="subtask-badge"
           >{{ todo.subtasks.filter(s => s.done).length }}/{{ todo.subtasks.length }}</span>
           <button

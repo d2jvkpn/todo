@@ -1,8 +1,8 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { useLocaleStore } from '../stores/locale'
-import { useTodosStore } from '../stores/todos'
-import { useThemeStore } from '../stores/theme'
+import { useLocaleStore } from '@/stores/locale'
+import { useTodosStore } from '@/stores/todos'
+import { useThemeStore } from '@/stores/theme'
 
 defineProps({ open: Boolean })
 const emit = defineEmits(['close'])
@@ -10,10 +10,7 @@ const emit = defineEmits(['close'])
 const localeStore = useLocaleStore()
 const todosStore = useTodosStore()
 const themeStore = useThemeStore()
-const showLang = ref(false)
-const showTheme = ref(false)
-const showAbout = ref(false)
-const showClearConfirm = ref(false)
+const activePanel = ref(null) // null | 'lang' | 'theme' | 'about' | 'clear'
 const alertMsg = ref(null)
 const fileInput = ref(null)
 const checkingUpdates = ref(false)
@@ -28,6 +25,12 @@ const configCachedText = computed(() => {
     timeStyle: 'medium',
   }).format(date)
 })
+
+const themeOptions = computed(() => [
+  { value: 'system', label: localeStore.t.themeSystem },
+  { value: 'light',  label: localeStore.t.themeLight },
+  { value: 'dark',   label: localeStore.t.themeDark },
+])
 
 function updateConfigCachedTime(event) {
   configCachedAt.value = event?.detail || localStorage.getItem('appConfigCachedAt') || ''
@@ -79,25 +82,29 @@ const languages = [
 
 function selectLang(lang) {
   localeStore.locale = lang
-  showLang.value = false
+  activePanel.value = null
 }
 
 function selectTheme(val) {
   themeStore.theme = val
-  showTheme.value = false
+  activePanel.value = null
 }
 
 function doClearAll() {
   todosStore.clearAll()
-  showClearConfirm.value = false
   closeAll()
 }
 
+function togglePanel(name) {
+  activePanel.value = activePanel.value === name ? null : name
+}
+
+function closeSubPanels() {
+  if (activePanel.value === 'lang' || activePanel.value === 'theme') activePanel.value = null
+}
+
 function closeAll() {
-  showLang.value = false
-  showTheme.value = false
-  showAbout.value = false
-  showClearConfirm.value = false
+  activePanel.value = null
   emit('close')
 }
 </script>
@@ -111,7 +118,7 @@ function closeAll() {
 
     <!-- 主菜单抽屉 -->
     <Transition name="drawer">
-      <div v-if="open" class="menu-drawer" @click="showLang = false; showTheme = false">
+      <div v-if="open" class="menu-drawer" @click="closeSubPanels">
         <div class="menu-item" @click="doExport">
           <svg class="menu-icon" viewBox="0 0 16 16" fill="none">
             <path d="M8 9V3m0 0L5 6m3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -126,7 +133,7 @@ function closeAll() {
           </svg>
           <span>{{ localeStore.t.importData }}</span>
         </div>
-        <div class="menu-item menu-item--danger" @click="showClearConfirm = true">
+        <div class="menu-item menu-item--danger" @click="activePanel = 'clear'">
           <svg class="menu-icon" viewBox="0 0 16 16" fill="none">
             <path d="M3 4h10M6 4V3h4v1M5 4l.5 9h5L11 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -140,7 +147,7 @@ function closeAll() {
           <span>{{ checkingUpdates ? localeStore.t.checkingUpdates : localeStore.t.checkUpdates }}</span>
         </div>
         <div class="menu-divider" />
-        <div class="menu-item" @click.stop="showTheme = !showTheme; showLang = false">
+        <div class="menu-item" @click.stop="togglePanel('theme')">
           <svg class="menu-icon" viewBox="0 0 16 16" fill="none">
             <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/>
             <path d="M8 2.5v2M8 11.5v2M2.5 8h2M11.5 8h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -151,7 +158,7 @@ function closeAll() {
                   stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <div class="menu-item" @click.stop="showLang = !showLang; showTheme = false">
+        <div class="menu-item" @click.stop="togglePanel('lang')">
           <svg class="menu-icon" viewBox="0 0 16 16" fill="none">
             <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/>
             <path d="M8 2.5C6 4 5.5 6 5.5 8S6 12 8 13.5M8 2.5C10 4 10.5 6 10.5 8S10 12 8 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -163,7 +170,7 @@ function closeAll() {
                   stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <div class="menu-item" @click="showAbout = true">
+        <div class="menu-item" @click="activePanel = 'about'">
           <svg class="menu-icon" viewBox="0 0 16 16" fill="none">
             <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/>
             <path d="M8 7.5v3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -177,13 +184,9 @@ function closeAll() {
 
     <!-- 主题子面板 -->
     <Transition name="panel">
-      <div v-if="open && showTheme" class="menu-panel">
+      <div v-if="open && activePanel === 'theme'" class="menu-panel">
         <div
-          v-for="opt in [
-            { value: 'system', label: localeStore.t.themeSystem },
-            { value: 'light',  label: localeStore.t.themeLight },
-            { value: 'dark',   label: localeStore.t.themeDark },
-          ]"
+          v-for="opt in themeOptions"
           :key="opt.value"
           class="menu-item"
           @click="selectTheme(opt.value)"
@@ -200,7 +203,7 @@ function closeAll() {
 
     <!-- 语言子面板（抽屉右侧滑出） -->
     <Transition name="panel">
-      <div v-if="open && showLang" class="menu-panel">
+      <div v-if="open && activePanel === 'lang'" class="menu-panel">
         <div
           v-for="lang in languages"
           :key="lang.value"
@@ -219,11 +222,11 @@ function closeAll() {
 
     <!-- 清空确认弹窗 -->
     <Transition name="modal">
-      <div v-if="showClearConfirm" class="confirm-overlay" @click.self="showClearConfirm = false">
+      <div v-if="activePanel === 'clear'" class="confirm-overlay" @click.self="activePanel = null">
         <div class="confirm-modal">
           <p class="confirm-msg">{{ localeStore.t.confirmClearData }}</p>
           <div class="confirm-actions">
-            <button class="confirm-cancel" @click="showClearConfirm = false">{{ localeStore.t.cancel }}</button>
+            <button class="confirm-cancel" @click="activePanel = null">{{ localeStore.t.cancel }}</button>
             <button class="confirm-ok confirm-ok--danger" @click="doClearAll">{{ localeStore.t.confirm }}</button>
           </div>
         </div>
@@ -244,7 +247,7 @@ function closeAll() {
 
     <!-- 关于弹窗 -->
     <Transition name="modal">
-      <div v-if="showAbout" class="about-overlay" @click.self="showAbout = false">
+      <div v-if="activePanel === 'about'" class="about-overlay" @click.self="activePanel = null">
         <div class="about-modal">
           <div class="about-modal-title">TODO</div>
           <p class="about-modal-desc">{{ localeStore.t.aboutDesc }}</p>
@@ -259,7 +262,7 @@ function closeAll() {
             </div>
             <div class="about-modal-meta-row">
               <span class="about-modal-meta-label">{{ localeStore.t.cachedLabel }}</span>
-              <span class="about-modal-meta-value">{{ localeStore.t.configCachedTime(configCachedText) }}</span>
+              <span class="about-modal-meta-value">{{ configCachedText }}</span>
             </div>
             <div class="about-modal-meta-row">
               <span class="about-modal-meta-label">{{ localeStore.t.repositoryLabel }}</span>
@@ -268,7 +271,7 @@ function closeAll() {
               </a>
             </div>
           </div>
-          <button class="about-modal-close" @click="showAbout = false">
+          <button class="about-modal-close" @click="activePanel = null">
             {{ localeStore.t.close }}
           </button>
         </div>

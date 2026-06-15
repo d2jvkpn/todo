@@ -1,25 +1,16 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 
+// crypto.randomUUID() 仅在安全上下文（HTTPS / localhost）可用，
+// 通过局域网 IP 访问时降级为时间戳 + 随机数
+function generateId() {
+  return window.isSecureContext
+    ? crypto.randomUUID()
+    : Date.now().toString(36) + Math.random().toString(36).slice(2)
+}
+
 export const useTodosStore = defineStore('todos', () => {
-  // 迁移旧格式：done: boolean → status: 'active' | 'done'
-  const raw = JSON.parse(localStorage.getItem('todos') || '[]')
-  const todos = ref(raw.map(t => {
-    let migrated = t
-    // 旧格式迁移：done: boolean → status
-    if ('done' in t && !('status' in t)) {
-      migrated = { id: t.id, text: t.text, status: t.done ? 'done' : 'active' }
-    }
-    // 补全 priority 字段
-    if (!('priority' in migrated)) {
-      migrated = { ...migrated, priority: 'none' }
-    }
-    // complement subtasks field
-    if (!('subtasks' in migrated)) {
-      migrated = { ...migrated, subtasks: [] }
-    }
-    return migrated
-  }))
+  const todos = ref(JSON.parse(localStorage.getItem('todos') || '[]'))
   const filter = ref('active')
 
   watch(todos, (val) => {
@@ -33,12 +24,7 @@ export const useTodosStore = defineStore('todos', () => {
   })
 
   function addTodo(text) {
-    // crypto.randomUUID() 仅在安全上下文（HTTPS / localhost）可用，
-    // 通过局域网 IP 访问时降级为时间戳 + 随机数
-    const id = window.isSecureContext
-      ? crypto.randomUUID()
-      : Date.now().toString(36) + Math.random().toString(36).slice(2)
-    todos.value.push({ id, text, status: 'active', priority: 'none', subtasks: [] })
+    todos.value.push({ id: generateId(), text, status: 'active', priority: 'none', subtasks: [] })
   }
 
   function toggleTodo(id) {
@@ -67,10 +53,7 @@ export const useTodosStore = defineStore('todos', () => {
   function addSubtask(todoId, text) {
     const todo = todos.value.find(t => t.id === todoId)
     if (!todo) return
-    const id = window.isSecureContext
-      ? crypto.randomUUID()
-      : Date.now().toString(36) + Math.random().toString(36).slice(2)
-    todo.subtasks.push({ id, text, done: false })
+    todo.subtasks.push({ id: generateId(), text, done: false })
   }
 
   function deleteSubtask(todoId, subtaskId) {
@@ -149,16 +132,7 @@ export const useTodosStore = defineStore('todos', () => {
           if (!Array.isArray(data) || data.some(i => !('id' in i && 'text' in i && 'status' in i))) {
             throw new Error('invalid')
           }
-          const migrate = (t) => {
-            let m = t
-            if ('done' in m && !('status' in m)) {
-              m = { id: m.id, text: m.text, status: m.done ? 'done' : 'active' }
-            }
-            if (!('priority' in m)) m = { ...m, priority: 'none' }
-            if (!('subtasks' in m)) m = { ...m, subtasks: [] }
-            return m
-          }
-          todos.value = data.map(migrate)
+          todos.value = data
           resolve()
         } catch {
           reject()

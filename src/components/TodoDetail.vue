@@ -1,7 +1,7 @@
 <script setup>
 import { ref, nextTick } from 'vue'
-import { useTodosStore } from '../stores/todos'
-import { useLocaleStore } from '../stores/locale'
+import { useTodosStore } from '@/stores/todos'
+import { useLocaleStore } from '@/stores/locale'
 
 const props = defineProps({
   todo: { type: Object, required: true }
@@ -52,9 +52,11 @@ nextTick(() => {
   autoResize()
 })
 
+const CLOSE_DURATION = 250  // 与 CSS transition 时长同步
+
 function close() {
   isOpen.value = false
-  setTimeout(() => emit('close'), 250)
+  setTimeout(() => emit('close'), CLOSE_DURATION)
 }
 
 function saveText() {
@@ -94,7 +96,7 @@ function handleSubtaskEnter() {
           @blur="saveText"
         />
         <div class="subtask-scroll">
-        <ul class="subtask-list">
+          <ul class="subtask-list">
           <li
             v-for="sub in todo.subtasks"
             :key="sub.id"
@@ -123,7 +125,7 @@ function handleSubtaskEnter() {
             >{{ sub.text }}</span>
             <button class="subtask-delete" @click="store.deleteSubtask(todo.id, sub.id)">×</button>
           </li>
-        </ul>
+          </ul>
         </div>
         <div class="subtask-add">
           <input

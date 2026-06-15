@@ -7,9 +7,9 @@ A minimal mobile-first todo app built with Vue 3 + Vite + Pinia. Supports priori
 ## Screenshots
 
 <p align="center">
-  <img src="docs/demo/a01.jpg" width="260" alt="Todo list">
-  <img src="docs/demo/a02.jpg" width="260" alt="Priority picker">
-  <img src="docs/demo/a03.jpg" width="260" alt="Side menu">
+  <img src="examples/a01.jpg" width="260" alt="Todo list">
+  <img src="examples/a02.jpg" width="260" alt="Priority picker">
+  <img src="examples/a03.jpg" width="260" alt="Side menu">
 </p>
 
 ## Getting started

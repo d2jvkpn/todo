@@ -7,9 +7,9 @@
 ## 截图
 
 <p align="center">
-  <img src="docs/demo/a01.jpg" width="260" alt="待办列表">
-  <img src="docs/demo/a02.jpg" width="260" alt="优先级选择器">
-  <img src="docs/demo/a03.jpg" width="260" alt="侧边菜单">
+  <img src="examples/a01.jpg" width="260" alt="待办列表">
+  <img src="examples/a02.jpg" width="260" alt="优先级选择器">
+  <img src="examples/a03.jpg" width="260" alt="侧边菜单">
 </p>
 
 ## 运行
