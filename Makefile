@@ -18,8 +18,8 @@ preview:
 
 # make build PORT=3071
 run:
-	VITE_APP_CONFIG=app.local.json VITE_APP_BASE_PATH=/ \
+	VITE_APP_CONFIG=dev.json VITE_APP_BASE_PATH=/ \
 	npm run dev -- --host=0.0.0.0 $(if $(PORT),--port $(PORT),)
 
 release:
-	./target/release.sh
+	./scripts/release.sh
