@@ -20,3 +20,6 @@ preview:
 run:
 	VITE_APP_CONFIG=app.local.json VITE_APP_BASE_PATH=/ \
 	npm run dev -- --host=0.0.0.0 $(if $(PORT),--port $(PORT),)
+
+release:
+	./target/release.sh
