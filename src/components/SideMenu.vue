@@ -466,7 +466,7 @@ function closeAll() {
 .done-modal {
   background: var(--surface);
   border-radius: 16px;
-  padding: 28px 24px;
+  padding: 24px 12px;
   width: calc(100% - 24px);
   max-width: 460px;
   max-height: 70vh;
