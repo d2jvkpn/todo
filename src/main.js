@@ -2,7 +2,6 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import './style.css'
 import App from '@/App.vue'
-import { registerSW } from 'virtual:pwa-register'
 
 const CONFIG_CACHE_NAME = 'todo-config'
 const CONFIG_CACHED_AT_KEY = 'appConfigCachedAt'
@@ -89,14 +88,18 @@ async function checkForUpdates() {
   await registration?.update()   // 触发浏览器重新请求 SW 脚本，若有变化则下载新版本
   await refreshAppConfig()
 
-  // update() 后若存在 waiting 的新 SW，说明新版本已就绪；传 true 跳过等待立即接管
+  // update() 后若存在 waiting 的新 SW，说明新版本已就绪；由 App.vue 注册的处理函数激活
   if (registration?.waiting) {
-    updateServiceWorker(true)
+    window.todoUpdateServiceWorker?.(true)
   }
 }
 
 // 暴露给 UI 层调用（如"检查更新"按钮）
 window.todoCheckForUpdates = checkForUpdates
+
+// SW 注册由 App.vue 通过 useRegisterSW({ immediate: true }) 完成；
+// registerType: 'prompt' 使新 SW 停在 waiting 状态，由 App.vue 弹出提示后再激活。
+// updateServiceWorker 挂载到 window.todoUpdateServiceWorker 供 checkForUpdates 调用。
 
 async function bootstrap() {
   try {
@@ -110,8 +113,5 @@ async function bootstrap() {
   app.use(createPinia())
   app.mount('#app')
 }
-
-// immediate: true 表示 SW 激活后立即接管所有页面，无需等待页面刷新
-const updateServiceWorker = registerSW({ immediate: true })
 
 bootstrap()

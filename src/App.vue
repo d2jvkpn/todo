@@ -1,11 +1,17 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRegisterSW } from 'virtual:pwa-register/vue'
 import TodoInput from '@/components/TodoInput.vue'
 import TodoList from '@/components/TodoList.vue'
 import SideMenu from '@/components/SideMenu.vue'
 import { useThemeStore } from '@/stores/theme'
+import { useLocaleStore } from '@/stores/locale'
 
 useThemeStore()
+const locale = useLocaleStore()
+
+const { needRefresh, updateServiceWorker } = useRegisterSW({ immediate: true })
+window.todoUpdateServiceWorker = updateServiceWorker
 
 const menuOpen = ref(false)
 
@@ -63,6 +69,12 @@ onMounted(() => {
         <TodoInput />
       </div>
     </header>
+    <Transition name="update-banner">
+      <div v-if="needRefresh" class="update-banner">
+        <span>{{ locale.t.updateReady }}</span>
+        <button @click="updateServiceWorker(true)">{{ locale.t.updateNow }}</button>
+      </div>
+    </Transition>
     <main class="app-body">
       <TodoList />
     </main>
@@ -136,5 +148,40 @@ h1 {
   font-size: 18px;
   font-weight: 700;
   color: var(--text-h);
+}
+
+.update-banner {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 16px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+}
+
+.update-banner button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 5px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.update-banner-enter-active,
+.update-banner-leave-active {
+  transition: max-height 0.28s ease, opacity 0.28s ease;
+  max-height: 48px;
+  overflow: hidden;
+}
+
+.update-banner-enter-from,
+.update-banner-leave-to {
+  max-height: 0;
+  opacity: 0;
 }
 </style>

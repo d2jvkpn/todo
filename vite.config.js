@@ -10,8 +10,9 @@ function normalizeBasePath(path) {
 }
 
 const pwa = VitePWA({
-  // 新 SW 就绪后自动 skipWaiting + clients.claim，无需用户手动刷新（另一选项 'prompt' 则停在 waiting 状态，由应用代码决定何时激活）
-  registerType: 'autoUpdate',
+  // 'prompt': 新 SW 就绪后停在 waiting 状态，由 App.vue 弹出提示后再调用 updateServiceWorker(true) 激活
+  // 'autoUpdate': 新 SW 就绪后自动 skipWaiting + clients.claim，无需用户确认（静默更新）
+  registerType: 'prompt',
   includeAssets: ['app.json', 'favicon.svg'],
   manifest: {
     name: 'TODO',
