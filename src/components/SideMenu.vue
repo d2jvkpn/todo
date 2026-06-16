@@ -391,7 +391,7 @@ function closeAll() {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 0;
 }
 
 .about-modal {
@@ -467,8 +467,8 @@ function closeAll() {
   background: var(--surface);
   border-radius: 16px;
   padding: 28px 24px;
-  width: 100%;
-  max-width: 360px;
+  width: calc(100% - 24px);
+  max-width: 460px;
   max-height: 70vh;
   display: flex;
   flex-direction: column;
