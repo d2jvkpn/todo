@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, watch, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, watch, computed, onMounted, onUnmounted } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import { useTodosStore } from '@/stores/todos'
 import { useLocaleStore } from '@/stores/locale'
@@ -7,8 +7,14 @@ import { truncate } from '@/utils/utils'
 import PriorityDot from '@/components/PriorityDot.vue'
 import TodoDetail from '@/components/TodoDetail.vue'
 
+const props = defineProps({
+  todos: Array,
+  emptyText: String,
+})
+
 const store = useTodosStore()
 const locale = useLocaleStore()
+const sourceList = computed(() => props.todos ?? store.filteredTodos)
 const modal = ref(null) // { msg, onConfirm, danger? }
 
 function showConfirm(msg, onConfirm, danger = false) {
@@ -77,12 +83,12 @@ function onSwipeDelete(todo) {
 // ── drag-to-reorder ─────────────────────────────────────────────────────────
 const dragList = ref([])
 
-watch(() => store.filteredTodos, (val) => {
+watch(sourceList, (val) => {
   dragList.value = [...val]
 }, { immediate: true })
 
 function onDragEnd() {
-  store.reorderTodosByIds(dragList.value.map(t => t.id))
+  if (!props.todos) store.reorderTodosByIds(dragList.value.map(t => t.id))
 }
 
 const selectedTodo = ref(null)
@@ -115,7 +121,7 @@ onUnmounted(() => {
 
 <template>
     <ul v-if="dragList.length === 0" class="todo-list">
-      <li class="empty">{{ locale.t.empty }}</li>
+      <li class="empty">{{ props.emptyText ?? locale.t.empty }}</li>
     </ul>
     <VueDraggable
       v-else
@@ -126,6 +132,7 @@ onUnmounted(() => {
       :delay="400"
       :delay-on-touch-only="true"
       :touch-start-threshold="10"
+      :disabled="!!props.todos"
       ghost-class="drag-ghost"
       @end="onDragEnd"
     >

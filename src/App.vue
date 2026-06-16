@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import TodoInput from '@/components/TodoInput.vue'
-import TodoFilter from '@/components/TodoFilter.vue'
 import TodoList from '@/components/TodoList.vue'
 import SideMenu from '@/components/SideMenu.vue'
 import { useThemeStore } from '@/stores/theme'
@@ -63,7 +62,6 @@ onMounted(() => {
       <div ref="inputRef">
         <TodoInput />
       </div>
-      <TodoFilter />
     </header>
     <main class="app-body">
       <TodoList />

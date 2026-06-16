@@ -4,17 +4,13 @@ import { generateId, downloadFile } from '@/utils/utils'
 
 export const useTodosStore = defineStore('todos', () => {
   const todos = ref(JSON.parse(localStorage.getItem('todos') || '[]'))
-  const filter = ref('active')
 
   watch(todos, (val) => {
     localStorage.setItem('todos', JSON.stringify(val))
   }, { deep: true })
 
-  const filteredTodos = computed(() => {
-    if (filter.value === 'active') return todos.value.filter(t => t.status === 'active')
-    if (filter.value === 'done') return todos.value.filter(t => t.status === 'done')
-    return todos.value
-  })
+  const filteredTodos = computed(() => todos.value.filter(t => t.status === 'active'))
+  const doneTodos = computed(() => todos.value.filter(t => t.status === 'done'))
 
   function addTodo(text) {
     todos.value.push({ id: generateId(), text, status: 'active', priority: 'none', subtasks: [] })
@@ -81,10 +77,6 @@ export const useTodosStore = defineStore('todos', () => {
     todos.value = newTodos
   }
 
-  function setFilter(value) {
-    filter.value = value
-  }
-
   async function exportTodos() {
     const now = new Date()
     const filename = `TODO.${now.toISOString().slice(0, 10)}-${now.getTime()}.json`
@@ -112,9 +104,9 @@ export const useTodosStore = defineStore('todos', () => {
 
   return {
     todos,
-    filter, filteredTodos,
+    filteredTodos, doneTodos,
     addTodo, toggleTodo, editTodo, deleteTodo, clearAll,
-    setPriority, setFilter,
+    setPriority,
     exportTodos, importTodos,
     addSubtask, editSubtask, toggleSubtask, deleteSubtask,
     reorderTodosByIds,

@@ -5,12 +5,9 @@ const messages = {
   zh: {
     placeholder: '添加新任务...',
     add: '添加',
-    filters: [
-      { value: 'active', label: '未完成' },
-      { value: 'done', label: '已完成' },
-      { value: 'all', label: '全部' },
-    ],
     empty: '暂无任务',
+    completed: '已完成',
+    noCompleted: '暂无已完成任务',
     confirmDelete: (p) => `确认删除「${p}」？`,
     confirmMarkDone:   (p) => `完成「${p}」？`,
     confirmMarkUndone: (p) => `撤销完成「${p}」？`,
@@ -56,12 +53,9 @@ const messages = {
   en: {
     placeholder: 'Add a task...',
     add: 'Add',
-    filters: [
-      { value: 'active', label: 'Active' },
-      { value: 'done', label: 'Done' },
-      { value: 'all', label: 'All' },
-    ],
     empty: 'No tasks',
+    completed: 'Completed',
+    noCompleted: 'No completed tasks',
     confirmDelete: (p) => `Delete "${p}"?`,
     confirmMarkDone:   (p) => `Mark "${p}" as done?`,
     confirmMarkUndone: (p) => `Undo "${p}"?`,

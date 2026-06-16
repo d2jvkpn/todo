@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useLocaleStore } from '@/stores/locale'
 import { useTodosStore } from '@/stores/todos'
 import { useThemeStore } from '@/stores/theme'
+import TodoList from '@/components/TodoList.vue'
 
 defineProps({ open: Boolean })
 const emit = defineEmits(['close'])
@@ -10,7 +11,7 @@ const emit = defineEmits(['close'])
 const localeStore = useLocaleStore()
 const todosStore = useTodosStore()
 const themeStore = useThemeStore()
-const activePanel = ref(null) // null | 'lang' | 'theme' | 'about' | 'clear'
+const activePanel = ref(null) // null | 'lang' | 'theme' | 'about' | 'clear' | 'done'
 const alertMsg = ref(null)
 const fileInput = ref(null)
 const checkingUpdates = ref(false)
@@ -146,6 +147,12 @@ function closeAll() {
           </svg>
           <span>{{ checkingUpdates ? localeStore.t.checkingUpdates : localeStore.t.checkUpdates }}</span>
         </div>
+        <div class="menu-item" @click="activePanel = 'done'">
+          <svg class="menu-icon" viewBox="0 0 16 16" fill="none">
+            <path d="M3 8l4 4 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>{{ localeStore.t.completed }}</span>
+        </div>
         <div class="menu-divider" />
         <div class="menu-item" @click.stop="togglePanel('theme')">
           <svg class="menu-icon" viewBox="0 0 16 16" fill="none">
@@ -241,6 +248,19 @@ function closeAll() {
           <div class="confirm-actions">
             <button class="confirm-ok" @click="alertMsg = null">{{ localeStore.t.close }}</button>
           </div>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- 已完成任务弹窗 -->
+    <Transition name="modal">
+      <div v-if="activePanel === 'done'" class="about-overlay" @click.self="activePanel = null">
+        <div class="done-modal">
+          <div class="about-modal-title">{{ localeStore.t.completed }}</div>
+          <div class="done-modal-list">
+            <TodoList :todos="todosStore.doneTodos" :empty-text="localeStore.t.noCompleted" />
+          </div>
+          <button class="about-modal-close" @click="activePanel = null">{{ localeStore.t.close }}</button>
         </div>
       </div>
     </Transition>
@@ -441,5 +461,22 @@ function closeAll() {
   border-radius: 8px;
   font-size: 15px;
   cursor: pointer;
+}
+
+.done-modal {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 360px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.done-modal-list {
+  flex: 1;
+  overflow-y: auto;
 }
 </style>
