@@ -69,10 +69,15 @@ onMounted(() => {
         <TodoInput />
       </div>
     </header>
-    <Transition name="update-banner">
-      <div v-if="needRefresh" class="update-banner">
-        <span>{{ locale.t.updateReady }}</span>
-        <button @click="updateServiceWorker(true)">{{ locale.t.updateNow }}</button>
+    <Transition name="modal">
+      <div v-if="needRefresh" class="update-overlay">
+        <div class="update-modal">
+          <p class="update-msg">{{ locale.t.updateReady }}</p>
+          <div class="update-actions">
+            <button class="update-cancel" @click="needRefresh = false">{{ locale.t.cancel }}</button>
+            <button class="update-ok" @click="updateServiceWorker(true)">{{ locale.t.updateNow }}</button>
+          </div>
+        </div>
       </div>
     </Transition>
     <main class="app-body">
@@ -150,38 +155,56 @@ h1 {
   color: var(--text-h);
 }
 
-.update-banner {
-  flex-shrink: 0;
+.update-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 200;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 9px 16px;
-  background: var(--accent);
-  color: #fff;
-  font-size: 14px;
+  justify-content: center;
+  padding: 24px;
 }
 
-.update-banner button {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  color: #fff;
-  padding: 4px 12px;
-  border-radius: 5px;
-  font-size: 13px;
+.update-modal {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 24px;
+  width: 100%;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.update-msg {
+  font-size: 15px;
+  color: var(--text-h);
+  text-align: center;
+}
+
+.update-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.update-cancel,
+.update-ok {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
   cursor: pointer;
-  white-space: nowrap;
 }
 
-.update-banner-enter-active,
-.update-banner-leave-active {
-  transition: max-height 0.28s ease, opacity 0.28s ease;
-  max-height: 48px;
-  overflow: hidden;
+.update-cancel {
+  background: var(--bg);
+  color: var(--text);
 }
 
-.update-banner-enter-from,
-.update-banner-leave-to {
-  max-height: 0;
-  opacity: 0;
+.update-ok {
+  background: var(--accent-bg);
+  color: var(--accent);
 }
 </style>
