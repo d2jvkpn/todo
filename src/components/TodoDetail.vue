@@ -192,7 +192,7 @@ function handleSubtaskEnter() {
 
 .detail-title {
   width: 100%;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 500;
   color: var(--text-h);
   background: transparent;
@@ -235,7 +235,7 @@ function handleSubtaskEnter() {
 
 .subtask-row span {
   flex: 1;
-  font-size: 15px;
+  font-size: 16px;
   color: var(--text-h);
   word-break: break-word;
   cursor: text;
