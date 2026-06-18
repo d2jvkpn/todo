@@ -153,7 +153,9 @@ onUnmounted(() => {
             :priority="todo.priority"
             @update:priority="store.setPriority(todo.id, $event)"
           />
-          <span @click="selectedTodo = todo"> {{ todo.text }} </span>
+          <div class="text-wrapper" @click="selectedTodo = todo">
+            <span>{{ todo.text }}</span>
+          </div>
           <span v-if="todo.subtasks.length > 0" class="subtask-badge">
             {{ todo.subtasks.filter(s => s.done).length }}/{{ todo.subtasks.length }}
           </span>
@@ -240,12 +242,18 @@ onUnmounted(() => {
   transition: none;
 }
 
-.swipe-wrap.done .item-content span {
+.swipe-wrap.done .text-wrapper > span {
   opacity: 0.45;
 }
 
-.item-content span {
+.text-wrapper {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.text-wrapper > span {
   font-size: 16px;
   color: var(--text-h);
   white-space: pre-wrap;

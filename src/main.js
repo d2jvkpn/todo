@@ -60,15 +60,15 @@ async function fetchCachedConfig(configUrl) {
   return response.json()
 }
 
-// 启动时加载配置：优先网络，失败时自动降级到缓存
+// 启动时加载配置：优先缓存（立即返回），失败时降级到网络
 async function loadAppConfig() {
   const configUrl = getConfigUrl()
 
   try {
-    return await fetchNetworkConfig(configUrl)
+    return await fetchCachedConfig(configUrl)
   } catch (error) {
     console.warn(error)
-    return fetchCachedConfig(configUrl)
+    return fetchNetworkConfig(configUrl)
   }
 }
 
@@ -112,6 +112,9 @@ async function bootstrap() {
   const app = createApp(App)
   app.use(createPinia())
   app.mount('#app')
+
+  // 后台静默刷新配置，不阻塞首屏
+  fetchNetworkConfig(getConfigUrl()).then(applyAppConfig).catch(() => {})
 }
 
 bootstrap()
