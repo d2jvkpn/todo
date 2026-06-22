@@ -19,11 +19,11 @@ function applyAppConfig(config) {
 }
 
 // 始终走网络拉取最新配置，并写入 Cache Storage 供离线回退
-async function fetchNetworkConfig(configUrl) {
+async function fetchNetworkConfig(configUrl, signal) {
   const networkUrl = new URL(configUrl)
   networkUrl.searchParams.set('_cacheBust', Date.now().toString())  // 绕过 HTTP 缓存
 
-  const response = await fetch(networkUrl, { cache: 'no-store' })
+  const response = await fetch(networkUrl, { cache: 'no-store', signal })
   if (!response.ok) throw new Error(`!!! Failed to load config: ${response.status}`)
 
   const ct = response.headers.get('content-type') || ''
@@ -73,9 +73,9 @@ async function loadAppConfig() {
 }
 
 // 在线时强制拉取最新配置并立即生效
-async function refreshAppConfig() {
+async function refreshAppConfig(signal) {
   if (!navigator.onLine) throw new Error('offline')
-  const config = await fetchNetworkConfig(getConfigUrl())
+  const config = await fetchNetworkConfig(getConfigUrl(), signal)
   applyAppConfig(config)
   return config
 }
@@ -85,12 +85,26 @@ async function checkForUpdates() {
   if (!navigator.onLine) throw new Error('offline')
   // getRegistration 在不支持 SW 的环境（如 file:// 或隐私模式）返回 undefined，用 ?. 防御
   const registration = await navigator.serviceWorker?.getRegistration?.()
-  await registration?.update()   // 触发浏览器重新请求 SW 脚本，若有变化则下载新版本
-  await refreshAppConfig()
 
-  // update() 后若存在 waiting 的新 SW，说明新版本已就绪；由 App.vue 注册的处理函数激活
-  if (registration?.waiting) {
-    window.todoUpdateServiceWorker?.(true)
+  const controller = new AbortController()
+  const tid = setTimeout(() => controller.abort(), 15_000)
+
+  try {
+    if (registration) {
+      // registration.update() 无法被取消，用 Promise.race 保证超时后不再阻塞
+      const abortPromise = new Promise((_, reject) =>
+        controller.signal.addEventListener('abort', () => reject(new Error('timeout')), { once: true })
+      )
+      await Promise.race([registration.update(), abortPromise])
+    }
+    await refreshAppConfig(controller.signal)   // 超时时 fetch 立即中止
+
+    // update() 后若存在 waiting 的新 SW，说明新版本已就绪；由 App.vue 注册的处理函数激活
+    if (registration?.waiting) {
+      window.todoUpdateServiceWorker?.(true)
+    }
+  } finally {
+    clearTimeout(tid)
   }
 }
 

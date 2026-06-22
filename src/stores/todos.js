@@ -13,7 +13,7 @@ export const useTodosStore = defineStore('todos', () => {
   const doneTodos = computed(() => todos.value.filter(t => t.status === 'done'))
 
   function addTodo(text) {
-    todos.value.push({ id: generateId(), text, status: 'active', priority: 'none', subtasks: [] })
+    todos.value.unshift({ id: generateId(), text, status: 'active', priority: 'none', subtasks: [] })
   }
 
   function toggleTodo(id) {
