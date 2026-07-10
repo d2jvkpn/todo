@@ -34,7 +34,7 @@ App.vue
 │   ├── TodoInput.vue   # Add new todo
 │   └── TodoFilter.vue  # Filter tabs: active / done / all
 └── main
-    └── TodoList.vue    # Drag-to-reorder (VueDraggable/SortableJS), swipe-reveal delete, tap-to-open detail
+    └── TodoList.vue    # Drag-to-reorder (VueDraggable/SortableJS), swipe-reveal copy+delete, tap-to-open detail
         ├── PriorityDot.vue   # Per-item priority picker (teleported popover)
         └── TodoDetail.vue    # Bottom sheet: parent text edit + subtask CRUD (Teleport to body)
 ```

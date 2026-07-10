@@ -35,11 +35,12 @@ function confirmDelete(todo) {
 }
 
 // ── swipe-to-reveal delete ──────────────────────────────────────────────────
-const REVEAL_W = 50       // px — delete button only, 删除按钮的宽度与滑动到底偏移量相同
+const REVEAL_W = 100      // px — copy + delete buttons (50 px each)
 const SNAP_THRESHOLD = 40 // px — minimum drag distance to snap open, 吸附触发的最小拖动距离
 
 const swipeOffsets = reactive({}) // { [id]: number }, 滑动 offsets
 const openId = ref(null)          // 全局唯一锁，确保同时只有一项处于展开状态
+const copiedId = ref(null)
 const draggingId = ref(null)
 let _startX = 0
 
@@ -78,6 +79,38 @@ function onSwipeDelete(todo) {
   swipeOffsets[todo.id] = 0
   openId.value = null
   confirmDelete(todo)
+}
+
+function copyTodo(todo) {
+  const lines = [todo.text]
+  for (const s of todo.subtasks) {
+    lines.push((s.done ? '[x] ' : '[ ] ') + s.text)
+  }
+  const text = lines.join('\n')
+
+  const fallbackCopy = () => {
+    const el = document.createElement('textarea')
+    el.value = text
+    el.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;'
+    document.body.appendChild(el)
+    el.focus()
+    el.setSelectionRange(0, text.length)
+    document.execCommand('copy')
+    document.body.removeChild(el)
+  }
+
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).catch(fallbackCopy)
+  } else {
+    fallbackCopy()
+  }
+
+  copiedId.value = todo.id
+  setTimeout(() => {
+    copiedId.value = null
+    swipeOffsets[todo.id] = 0
+    openId.value = null
+  }, 800)
 }
 
 // ── drag-to-reorder ─────────────────────────────────────────────────────────
@@ -167,6 +200,11 @@ onUnmounted(() => {
           <button class="delete" @click="confirmDelete(todo)">×</button>
         </div>
         <div class="swipe-actions">
+          <button
+            class="swipe-copy"
+            :class="{ 'swipe-copy--copied': copiedId === todo.id }"
+            @click="copyTodo(todo)"
+          >{{ copiedId === todo.id ? '✓' : '⎘' }}</button>
           <button class="swipe-delete" @click="onSwipeDelete(todo)">✕</button>
         </div>
       </li>
@@ -330,6 +368,25 @@ onUnmounted(() => {
   bottom: 0;
   display: flex;
   z-index: 0;
+}
+
+.swipe-copy {
+  width: 50px;
+  height: 100%;
+  color: #fff;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  background: #3b82f6;
+  transition: background 0.15s;
+}
+
+.swipe-copy--copied {
+  background: #22c55e;
+}
+
+@media (hover: hover) {
+  .swipe-copy:not(.swipe-copy--copied):hover { background: #2563eb; }
 }
 
 .swipe-delete {
